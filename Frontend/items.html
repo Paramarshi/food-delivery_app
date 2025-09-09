@@ -1,0 +1,16 @@
+ <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA ---
+            const products = [
+                { id: 1, name: 'Fresh Apples', image: 'https://images.unsplash.com/photo-1579613832125-5d34a13ffe2a?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=400', category: 'Fruits', variants: [{unit: '500 g', price: 75}, {unit: '1 kg', price: 150}] },
+                { id: 2, name: 'Ripe Bananas', image: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=400', category: 'Fruits', variants: [{unit: '6 pcs', price: 30}, {unit: '1 dozen', price: 50}] },
+                { id: 3, name: 'Tomatoes', image: 'https://cdn.zeptonow.com/production/tr:w-1280,ar-3000-3000,pr-true,f-auto,q-80/cms/product_variant/05e8f43f-90fa-4636-8c03-fafc8f9e7b21.jpeg', category: 'Vegetables', variants: [{unit: '250 g', price: 40}, {unit: '500 g', price: 80}] },
+                { id: 4, name: 'Organic Milk', image: 'https://images.unsplash.com/photo-1559598467-f8b76c8155d0?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=400', category: 'Dairy', variants: [{unit: '500 ml', price: 25}, {unit: '1 litre', price: 48}] },
+                { id: 5, name: 'Whole Wheat Bread', image: 'https://cdn.zeptonow.com/production/tr:w-1280,ar-1200-1200,pr-true,f-auto,q-80/cms/product_variant/68de0f15-ba46-4a79-95ec-0e2a33ce9dcc.jpeg', category: 'Bakery', variants: [{unit: '1 loaf', price: 45}] },
+                { id: 6, name: 'Eggs', image: 'https://cdn.zeptonow.com/production/tr:w-1280,ar-1200-1200,pr-true,f-auto,q-80/cms/product_variant/35241f67-e64e-4f15-8c9e-175186993049.jpeg', category: 'Dairy', variants: [{unit: '6 pack', price: 40}, {unit: '12 pack', price: 70}] },
+                { id: 7, name: 'Spinach', image: 'https://cdn.zeptonow.com/production/tr:w-1280,ar-3000-3000,pr-true,f-auto,q-80/cms/product_variant/aaedc2c9-8e42-44cd-b835-c43d1b3913ec.jpeg', category: 'Vegetables', variants: [{unit: '250 g', price: 25}, {unit: '500 g', price: 45}] },
+                { id: 8, name: 'Cheddar Cheese', image: 'https://cdn.zeptonow.com/production/tr:w-1280,ar-1000-1000,pr-true,f-auto,q-80/cms/product_variant/19b40e18-47b0-40bb-806c-f8e9319f6f16.jpeg', category: 'Dairy', variants: [{unit: '100 g', price: 110}, {unit: '200 g', price: 200}] },
+               
+            ];
+            const categories = ['All', ...new Set(products.map(p => p.category))];
+            let cart = []; // { productId, unit, quantity, price, name }
