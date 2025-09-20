@@ -1,0 +1,13 @@
+# MongoDB Configuration
+MONGODB_URI=mongodb://localhost:27017/food_delivery
+
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+
+# Razorpay Configuration (Optional - for payment integration)
+RAZORPAY_KEY_ID=your_razorpay_key_id_here
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret_here
+
+# JWT Secret (Optional - for authentication)
+JWT_SECRET=

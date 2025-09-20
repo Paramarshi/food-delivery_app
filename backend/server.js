@@ -1,20 +1,35 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 
 // Basic middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:3000'],
+    credentials: true
+}));
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/food_delivery', {
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/food_delivery';
+
+console.log('🔍 Checking environment variables...');
+console.log('MONGODB_URI:', MONGODB_URI ? 'Loaded' : 'Not found');
+
+mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
-.then(() => console.log('✅ MongoDB Connected'))
-.catch(err => console.log('❌ MongoDB Error:', err));
+.then(() => {
+    console.log('✅ MongoDB Connected Successfully');
+    console.log('📍 Connected to:', MONGODB_URI);
+})
+.catch(err => {
+    console.log('❌ MongoDB Connection Error:', err.message);
+    console.log('💡 Make sure MongoDB is running or check your connection string');
+});
 
 // Simple Order Schema
 const Order = mongoose.model('Order', {
@@ -25,9 +40,31 @@ const Order = mongoose.model('Order', {
     createdAt: { type: Date, default: Date.now }
 });
 
+// Product Schema
+const Product = mongoose.model('Product', {
+    id: Number,
+    name: String,
+    image: String,
+    category: String,
+    variants: [{
+        unit: String,
+        price: Number
+    }]
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Server is running!' });
+});
+
+// Get all products
+app.get('/api/products', async (req, res) => {
+    try {
+        const products = await Product.find();
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Create order
@@ -64,8 +101,35 @@ app.get('/api/orders/user/:userId', async (req, res) => {
     }
 });
 
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({ 
+        error: 'Route not found',
+        requestedPath: req.originalUrl
+    });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({ 
+        error: 'Internal server error', 
+        details: err.message 
+    });
+});
+
 // Start server
-app.listen(5000, () => {
-    console.log('🚀 Server running on http://localhost:5000');
-    console.log('🩺 Health: http://localhost:5000/api/health');
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🩺 Health: http://localhost:${PORT}/api/health`);
+    console.log(`📡 API Base: http://localhost:${PORT}/api`);
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.log(`❌ Port ${PORT} is already in use`);
+        console.log('💡 Try killing the process or use a different port');
+    } else {
+        console.log('❌ Server Error:', err);
+    }
 });
