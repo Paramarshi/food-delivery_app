@@ -1,6 +1,24 @@
 {
+  "name": "grocery-mart-delivery",
+  "version": "1.0.0",
+  "description": "A modern food delivery app with fast checkout and real-time tracking",
+  "main": "index.js",
+  "scripts": {
+    "start": "vercel dev",
+    "build": "echo 'No build step required for static site'"
+  },
   "dependencies": {
-    "@clerk/clerk-js": "^5.96.0",
-    "dotenv": "^17.2.2"
+    "@clerk/clerk-js": "^5.99.0",
+    "@clerk/nextjs": "^6.33.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "vercel": "latest"
+  },
+  "engines": {
+    "node": ">=18.x"
   }
 }

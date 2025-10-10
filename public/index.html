@@ -13,6 +13,9 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <!-- Clerk Authentication -->
+    <script src="https://unpkg.com/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
 
     <style>
         /* Define CSS variables for theming */
@@ -195,6 +198,10 @@
                 Grocerry Mart
             </h1>
             <div class="flex items-center gap-3">
+                <!-- Authentication Container -->
+                <div id="auth-container" class="mr-4">
+                    <!-- Auth buttons will be inserted here -->
+                </div>
                 <button id="theme-toggle" class="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[color:var(--bg-light)] focus:ring-[color:var(--accent-color-1)] themed-card-bg border themed-border transition-transform transform hover:scale-110 shadow-sm">
                     <i id="sun-icon" class="ph-sun text-2xl"></i>
                     <i id="moon-icon" class="ph-moon text-2xl hidden"></i>
@@ -391,7 +398,7 @@
 
 <script>
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = '/api';
 
 // Global variables that will be accessible inside DOMContentLoaded
 let cart = [];
@@ -422,6 +429,148 @@ const loadOrderHistory = async (userId = 'guest-user') => {
 };
 
 document.addEventListener('DOMContentLoaded', async() => {
+    
+    // Initialize Clerk Authentication
+    let clerk;
+    let currentUser = null;
+    
+    try {
+        // Get Clerk configuration from our API
+        const configResponse = await fetch('/api/config');
+        const config = await configResponse.json();
+        
+        if (config.CLERK_PUBLISHABLE_KEY) {
+            // Initialize Clerk
+            clerk = window.Clerk;
+            await clerk.load({
+                publishableKey: config.CLERK_PUBLISHABLE_KEY
+            });
+            
+            // Check if user is already signed in
+            if (clerk.user) {
+                currentUser = clerk.user;
+                console.log('User is signed in:', currentUser.firstName);
+                updateUIForSignedInUser();
+            } else {
+                console.log('User is not signed in');
+                updateUIForSignedOutUser();
+            }
+            
+            // Listen for authentication state changes
+            clerk.addListener(({ user }) => {
+                currentUser = user;
+                if (user) {
+                    console.log('User signed in:', user.firstName);
+                    updateUIForSignedInUser();
+                } else {
+                    console.log('User signed out');
+                    updateUIForSignedOutUser();
+                }
+            });
+        } else {
+            console.warn('Clerk publishable key not found');
+        }
+    } catch (error) {
+        console.error('Error initializing Clerk:', error);
+    }
+    
+    // Authentication UI helper functions
+    function updateUIForSignedInUser() {
+        // Update user profile with Clerk user data
+        userProfile = {
+            id: currentUser.id,
+            name: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+            email: currentUser.emailAddresses?.[0]?.emailAddress || '',
+            firstName: currentUser.firstName || '',
+            lastName: currentUser.lastName || ''
+        };
+        
+        // Update UI
+        const authContainer = document.getElementById('auth-container');
+        if (authContainer) {
+            authContainer.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium">Hello, ${currentUser.firstName || 'User'}!</span>
+                    <button id="sign-out-btn" class="text-sm text-red-600 hover:text-red-800">Sign Out</button>
+                </div>
+            `;
+            
+            document.getElementById('sign-out-btn').addEventListener('click', () => {
+                clerk.signOut();
+            });
+        }
+        
+        // Update profile display elements
+        updateProfileDisplay();
+    }
+    
+    function updateProfileDisplay() {
+        // Update any profile-related UI elements
+        const profileNameElements = document.querySelectorAll('.profile-name');
+        const profileEmailElements = document.querySelectorAll('.profile-email');
+        
+        profileNameElements.forEach(el => {
+            el.textContent = userProfile.name || 'Guest User';
+        });
+        
+        profileEmailElements.forEach(el => {
+            el.textContent = userProfile.email || '';
+        });
+        
+        // Update header avatar
+        const headerAvatar = document.getElementById('header-avatar');
+        if (headerAvatar && userProfile.name) {
+            const initial = userProfile.name.charAt(0).toUpperCase();
+            const headerAvatarUrl = `https://placehold.co/32x32/a3e635/1a2e05?text=${initial}`;
+            headerAvatar.src = headerAvatarUrl;
+        }
+    }
+    
+    function updateUIForSignedOutUser() {
+        // Reset user profile to default guest user
+        userProfile = {
+            id: 'guest-user',
+            name: 'Guest User',
+            email: '',
+            firstName: 'Guest',
+            lastName: 'User'
+        };
+        
+        const authContainer = document.getElementById('auth-container');
+        if (authContainer) {
+            authContainer.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium">Hello, ${currentUser.firstName || 'User'}!</span>
+                    <button id="sign-out-btn" class="text-sm text-red-600 hover:text-red-800">Sign Out</button>
+                </div>
+            `;
+            
+            document.getElementById('sign-out-btn').addEventListener('click', () => {
+                clerk.signOut();
+            });
+        }
+    }
+    
+    function updateUIForSignedOutUser() {
+        const authContainer = document.getElementById('auth-container');
+        if (authContainer) {
+            authContainer.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <button id="sign-in-btn" class="text-sm font-medium text-blue-600 hover:text-blue-800">Sign In</button>
+                    <span class="text-gray-400">|</span>
+                    <button id="sign-up-btn" class="text-sm font-medium text-green-600 hover:text-green-800">Sign Up</button>
+                </div>
+            `;
+            
+            document.getElementById('sign-in-btn').addEventListener('click', () => {
+                clerk.openSignIn();
+            });
+            
+            document.getElementById('sign-up-btn').addEventListener('click', () => {
+                clerk.openSignUp();
+            });
+        }
+    }
     
     const products = [
         // Fruits
@@ -547,10 +696,26 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
 
         const savedProfile = localStorage.getItem('grocerrymartProfile');
-        if (savedProfile) {
+        
+        // If user is authenticated via Clerk, use their data instead of localStorage
+        if (currentUser) {
+            userProfile = {
+                id: currentUser.id,
+                name: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+                email: currentUser.emailAddresses?.[0]?.emailAddress || '',
+                firstName: currentUser.firstName || '',
+                lastName: currentUser.lastName || '',
+                address: savedProfile ? JSON.parse(savedProfile).address : '123 Market Street<br>New Town, West Bengal<br>India'
+            };
+        } else if (savedProfile) {
             userProfile = JSON.parse(savedProfile);
+            // Ensure guest user has an ID
+            if (!userProfile.id) {
+                userProfile.id = 'guest-user';
+            }
         } else {
             userProfile = {
+                id: 'guest-user',
                 name: 'Guest User',
                 email: 'guest.user@email.com',
                 address: '123 Market Street<br>New Town, West Bengal<br>India'
