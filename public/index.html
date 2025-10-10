@@ -194,8 +194,8 @@
         <!-- Header -->
         <header class="sticky top-0 z-50 flex justify-between items-center mb-6 py-4 glass-effect -mx-4 sm:-mx-6 px-4 sm:px-6">
             <h1 class="text-3xl sm:text-4xl font-extrabold flex items-center gap-3">
-                <i class="ph-shopping-bag-open-fill text-[color:var(--accent-color-1)]"></i>
-                Grocerry Mart
+                <i class="ph-shopping-cart-fill text-[color:var(--accent-color-1)]"></i>
+                Grocery Mart
             </h1>
             <div class="flex items-center gap-3">
                 <!-- Authentication Container -->
@@ -681,10 +681,10 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     // --- DATA PERSISTENCE ---
     const loadDataFromStorage = () => {
-        const savedCart = localStorage.getItem('grocerrymartCart');
+        const savedCart = localStorage.getItem('grocerymartCart');
         if (savedCart) cart = JSON.parse(savedCart);
         
-        const savedOrders = localStorage.getItem('grocerrymartOrders');
+        const savedOrders = localStorage.getItem('grocerymartOrders');
         if (savedOrders) {
             pastOrders = JSON.parse(savedOrders);
         } else {
@@ -695,7 +695,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             saveOrdersToStorage();
         }
 
-        const savedProfile = localStorage.getItem('grocerrymartProfile');
+        const savedProfile = localStorage.getItem('grocerymartProfile');
         
         // If user is authenticated via Clerk, use their data instead of localStorage
         if (currentUser) {
@@ -724,9 +724,9 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     };
 
-    const saveCartToStorage = () => localStorage.setItem('grocerrymartCart', JSON.stringify(cart));
-    const saveOrdersToStorage = () => localStorage.setItem('grocerrymartOrders', JSON.stringify(pastOrders));
-    const saveProfileToStorage = () => localStorage.setItem('grocerrymartProfile', JSON.stringify(userProfile));
+    const saveCartToStorage = () => localStorage.setItem('grocerymartCart', JSON.stringify(cart));
+    const saveOrdersToStorage = () => localStorage.setItem('grocerymartOrders', JSON.stringify(pastOrders));
+    const saveProfileToStorage = () => localStorage.setItem('grocerymartProfile', JSON.stringify(userProfile));
 
     // --- RENDER FUNCTIONS ---
     const renderProducts = (filteredProducts = products) => {

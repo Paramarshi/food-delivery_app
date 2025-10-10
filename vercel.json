@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "grocery-mart-delivery",
   "rewrites": [
     {
       "source": "/api/(.*)",
