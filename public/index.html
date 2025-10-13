@@ -185,6 +185,22 @@
         .dark .profile-tab.active {
             color: var(--text-dark);
         }
+        
+        /* Logo styles for transparency and blend */
+        .logo-img {
+            mix-blend-mode: multiply;
+            opacity: 0.9;
+            transition: all 0.3s ease;
+        }
+        .logo-img:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        .dark .logo-img {
+            mix-blend-mode: screen;
+            opacity: 0.95;
+            filter: brightness(1.2);
+        }
     </style>
 </head>
 <body class="themed-bg themed-text">
@@ -193,10 +209,13 @@
     <div class="w-full max-w-5xl mx-auto p-4 sm:p-6">
         <!-- Header -->
         <header class="sticky top-0 z-50 flex justify-between items-center mb-6 py-4 glass-effect -mx-4 sm:-mx-6 px-4 sm:px-6">
-            <h1 class="text-3xl sm:text-4xl font-extrabold flex items-center gap-3">
-                <i class="ph-shopping-cart-fill text-[color:var(--accent-color-1)]"></i>
-                Grocery Mart
-            </h1>
+            <a href="/" class="flex items-center gap-2 sm:gap-3 cursor-pointer no-underline">
+                <!-- Logo Image -->
+                <img src="./Grocery-transparent.png" alt="Grocery Mart Logo" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain flex-shrink-0 logo-img transition-transform hover:scale-105 active:scale-95">
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold whitespace-nowrap themed-text">
+                    Grocery Mart
+                </h1>
+            </a>
             <div class="flex items-center gap-3">
                 <!-- Authentication Container -->
                 <div id="auth-container" class="mr-4">
