@@ -1,16 +1,12 @@
 # Grocery Mart - Food Delivery App
 
-A modern, responsive food delivery application built with vanilla JavaScript, Tailwind CSS, and Vercel serverless functions.
-
-## 🚀 Live Demo
-
-Access the live application: [Your Vercel URL will be here after deployment]
+A modern, responsive grocery delivery application built with vanilla JavaScript, Tailwind CSS, and Vercel serverless functions.
 
 ## 📁 Project Structure
 
 ```
 grocery-mart-delivery/
-├── public/                    # Frontend files (served by Vercel)
+├── public/                   # Frontend files (served by Vercel)
 │   ├── index.html            # Main landing page
 │   ├── items.html            # Product catalog page
 │   └── prototype.html        # Prototype/demo page
@@ -34,79 +30,6 @@ grocery-mart-delivery/
 - **Profile Management**: User profile and address management
 - **Mobile Responsive**: Works perfectly on all devices
 - **Serverless Backend**: Scalable API with PostgreSQL database
-
-## 🚀 Deployment to Vercel
-
-### Prerequisites
-
-1. **Vercel Account**: Create a free account at [vercel.com](https://vercel.com)
-2. **PostgreSQL Database**: Get a free database from [Neon](https://neon.tech), [Supabase](https://supabase.com), or [PlanetScale](https://planetscale.com)
-3. **Git Repository**: Your code should be in a Git repository (GitHub, GitLab, etc.)
-
-### Step-by-Step Deployment
-
-#### 1. Prepare Your Database
-
-1. Create a PostgreSQL database (recommended: [Neon](https://neon.tech))
-2. Copy your database connection string (it should look like):
-   ```
-   postgresql://username:password@hostname:port/database?sslmode=require
-   ```
-
-#### 2. Deploy to Vercel
-
-**Option A: Deploy from Git (Recommended)**
-
-1. Push your code to GitHub/GitLab
-2. Go to [vercel.com](https://vercel.com) and sign in
-3. Click "New Project"
-4. Import your repository
-5. Vercel will auto-detect the configuration from `vercel.json`
-6. Add environment variables:
-   - `DATABASE_URL`: Your PostgreSQL connection string
-   - `POSTGRES_URL`: Same as DATABASE_URL (for compatibility)
-7. Click "Deploy"
-
-**Option B: Deploy with Vercel CLI**
-
-1. Install Vercel CLI:
-   ```bash
-   npm install -g vercel
-   ```
-
-2. Login to Vercel:
-   ```bash
-   vercel login
-   ```
-
-3. Deploy from your project directory:
-   ```bash
-   vercel
-   ```
-
-4. Follow the prompts and add environment variables when asked
-
-#### 3. Configure Environment Variables
-
-After deployment, add these environment variables in your Vercel dashboard:
-
-1. Go to your project in Vercel dashboard
-2. Click on "Settings" → "Environment Variables"
-3. Add the following:
-
-| Name | Value | Description |
-|------|-------|-------------|
-| `DATABASE_URL` | `postgresql://...` | Your PostgreSQL connection string |
-| `POSTGRES_URL` | `postgresql://...` | Same as DATABASE_URL |
-
-#### 4. Test Your Deployment
-
-1. Visit your Vercel URL
-2. Test the main functionality:
-   - Browse products
-   - Add items to cart
-   - Place an order
-   - Check order history
 
 ### 🔧 Local Development
 
