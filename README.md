@@ -2,10 +2,6 @@
 
 A modern, responsive food delivery application built with vanilla JavaScript, Tailwind CSS, and Vercel serverless functions.
 
-## 🚀 Live Demo
-
-Access the live application: [Your Vercel URL will be here after deployment]
-
 ## 📁 Project Structure
 
 ```
