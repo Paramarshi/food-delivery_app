@@ -1,12 +1,12 @@
 # Grocery Mart - Food Delivery App
 
-A modern, responsive food delivery application built with vanilla JavaScript, Tailwind CSS, and Vercel serverless functions.
+A modern, responsive grocery delivery application built with vanilla JavaScript, Tailwind CSS, and Vercel serverless functions.
 
 ## 📁 Project Structure
 
 ```
 grocery-mart-delivery/
-├── public/                    # Frontend files (served by Vercel)
+├── public/                   # Frontend files (served by Vercel)
 │   ├── index.html            # Main landing page
 │   ├── items.html            # Product catalog page
 │   └── prototype.html        # Prototype/demo page
