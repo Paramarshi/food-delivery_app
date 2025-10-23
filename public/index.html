@@ -14,8 +14,8 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     
-    <!-- Clerk Authentication -->
-    <script src="https://unpkg.com/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <!-- Clerk Authentication - Local Script -->
+    <script src="./clerk.browser.js"></script>
 
     <style>
         /* Define CSS variables for theming */
@@ -275,8 +275,15 @@
                 </button>
             </div>
             <div class="relative">
-                <i class="ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 text-xl"></i>
-                <input type="text" id="search-bar" placeholder="Search for products..." class="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg pl-12 pr-4 py-3 focus:ring-2 focus:ring-[color:var(--accent-color-1)] focus:border-[color:var(--accent-color-1)] focus:outline-none transition text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400">
+                <i class="ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-xl"></i>
+                <input 
+                    type="text" 
+                    id="search-bar" 
+                    placeholder="Search for products..." 
+                    class="w-full pl-12 pr-4 py-3 rounded-lg border focus:ring-2 focus:outline-none transition-all
+                           placeholder-gray-400 dark:placeholder-gray-500
+                           focus:border-[color:var(--accent-color-1)] 
+                           focus:ring-[color:var(--accent-color-1)]">
             </div>
         </div>
 
@@ -353,8 +360,8 @@
         <div class="w-full max-w-md mx-auto flex-grow flex flex-col">
              <!-- Modal Header -->
             <div class="flex justify-between items-center mb-6">
-                <button id="close-profile-modal-btn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-all" title="Back">
-                    <i class="ph ph-arrow-left text-3xl" style="color: #14532d !important;"></i>
+                <button id="close-profile-modal-btn" class="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-all" title="Back">
+                    <i id="profile-back-icon" class="ph ph-arrow-left text-3xl"></i>
                 </button>
                 <h2 class="text-2xl sm:text-3xl font-bold">My Account</h2>
                 <div class="w-12"></div> <!-- Spacer for alignment -->
@@ -474,25 +481,61 @@ document.addEventListener('DOMContentLoaded', async() => {
     let clerk;
     let currentUser = null;
     
-    try {
-        // Get Clerk configuration from our API
-        const configResponse = await fetch('/api/config');
-        const config = await configResponse.json();
-        
-        if (config.CLERK_PUBLISHABLE_KEY) {
+    async function initializeClerk() {
+        try {
+            console.log('🔄 Initializing Clerk...');
+            
+            // Get Clerk configuration from our API
+            const configResponse = await fetch('/api/config');
+            console.log('📡 Config response status:', configResponse.status);
+            
+            if (!configResponse.ok) {
+                throw new Error(`Config API failed: ${configResponse.status}`);
+            }
+            
+            const config = await configResponse.json();
+            console.log('⚙️ Config received:', config);
+            
+            if (!config.CLERK_PUBLISHABLE_KEY) {
+                console.error('❌ No Clerk publishable key found in config');
+                updateUIForSignedOutUser();
+                return;
+            }
+            
+            console.log('🔑 Clerk key found:', config.CLERK_PUBLISHABLE_KEY.substring(0, 20) + '...');
+            
+            // Wait for Clerk to be available
+            if (!window.Clerk) {
+                console.log('⏳ Waiting for Clerk to load...');
+                await new Promise(resolve => {
+                    const checkClerk = () => {
+                        if (window.Clerk) {
+                            resolve();
+                        } else {
+                            setTimeout(checkClerk, 100);
+                        }
+                    };
+                    checkClerk();
+                });
+            }
+            
             // Initialize Clerk
             clerk = window.Clerk;
+            console.log('🏗️ Loading Clerk with key...');
+            
             await clerk.load({
                 publishableKey: config.CLERK_PUBLISHABLE_KEY
             });
             
+            console.log('✅ Clerk loaded successfully');
+            
             // Check if user is already signed in
             if (clerk.user) {
                 currentUser = clerk.user;
-                console.log('User is signed in:', currentUser.firstName);
+                console.log('👤 User is signed in:', currentUser.firstName);
                 updateUIForSignedInUser();
             } else {
-                console.log('User is not signed in');
+                console.log('👤 User is not signed in');
                 updateUIForSignedOutUser();
             }
             
@@ -500,19 +543,22 @@ document.addEventListener('DOMContentLoaded', async() => {
             clerk.addListener(({ user }) => {
                 currentUser = user;
                 if (user) {
-                    console.log('User signed in:', user.firstName);
+                    console.log('👤 User signed in:', user.firstName);
                     updateUIForSignedInUser();
                 } else {
-                    console.log('User signed out');
+                    console.log('👤 User signed out');
                     updateUIForSignedOutUser();
                 }
             });
-        } else {
-            console.warn('Clerk publishable key not found');
+            
+        } catch (error) {
+            console.error('❌ Error initializing Clerk:', error);
+            updateUIForSignedOutUser();
         }
-    } catch (error) {
-        console.error('Error initializing Clerk:', error);
     }
+    
+    // Call initialization
+    initializeClerk();
     
     // Authentication UI helper functions
     function updateUIForSignedInUser() {
@@ -579,22 +625,6 @@ document.addEventListener('DOMContentLoaded', async() => {
         const authContainer = document.getElementById('auth-container');
         if (authContainer) {
             authContainer.innerHTML = `
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm font-medium">Hello, ${currentUser.firstName || 'User'}!</span>
-                    <button id="sign-out-btn" class="text-sm text-red-600 hover:text-red-800">Sign Out</button>
-                </div>
-            `;
-            
-            document.getElementById('sign-out-btn').addEventListener('click', () => {
-                clerk.signOut();
-            });
-        }
-    }
-    
-    function updateUIForSignedOutUser() {
-        const authContainer = document.getElementById('auth-container');
-        if (authContainer) {
-            authContainer.innerHTML = `
                 <div class="flex items-center space-x-2">
                     <button id="sign-in-btn" class="text-sm font-medium text-[color:var(--accent-color-1)] hover:opacity-80">Sign In</button>
                     <span class="themed-subtle-text">|</span>
@@ -602,14 +632,32 @@ document.addEventListener('DOMContentLoaded', async() => {
                 </div>
             `;
             
-            document.getElementById('sign-in-btn').addEventListener('click', () => {
-                clerk.openSignIn();
-            });
+            const signInBtn = document.getElementById('sign-in-btn');
+            const signUpBtn = document.getElementById('sign-up-btn');
             
-            document.getElementById('sign-up-btn').addEventListener('click', () => {
-                clerk.openSignUp();
-            });
+            if (signInBtn) {
+                signInBtn.addEventListener('click', () => {
+                    if (clerk) {
+                        clerk.openSignIn();
+                    } else {
+                        console.error('Clerk not initialized');
+                    }
+                });
+            }
+            
+            if (signUpBtn) {
+                signUpBtn.addEventListener('click', () => {
+                    if (clerk) {
+                        clerk.openSignUp();
+                    } else {
+                        console.error('Clerk not initialized');
+                    }
+                });
+            }
         }
+        
+        // Update profile display
+        updateProfileDisplay();
     }
     
     const products = [
@@ -986,23 +1034,64 @@ document.addEventListener('DOMContentLoaded', async() => {
             const itemElement = document.createElement('div');
             itemElement.className = 'cart-item flex items-center gap-4 p-4 themed-card-bg border themed-border rounded-lg shadow-sm';
             itemElement.style.animationDelay = `${index * 0.1}s`;
-            itemElement.innerHTML = `
-                <img src="${product.image}" alt="${product.name}" class="w-16 h-16 rounded-md object-contain flex-shrink-0">
-                <div class="flex-grow min-w-0">
-                    <p class="font-semibold truncate">${product.name}</p>
-                    <p class="text-sm themed-subtle-text">${cartItem.unit} - ₹${cartItem.price.toFixed(2)}</p>
-                </div>
-                <div class="flex items-center justify-center border themed-border rounded-lg flex-shrink-0">
-                    <button class="p-2 dec-btn hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" data-id="${product.id}" data-unit="${cartItem.unit}">
-                        <i class="ph-minus text-red-500"></i>
-                    </button>
-                    <span class="px-4 font-bold min-w-[3rem] text-center">${cartItem.quantity}</span>
-                    <button class="p-2 inc-btn hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors" data-id="${product.id}" data-unit="${cartItem.unit}">
-                        <i class="ph-plus text-green-500"></i>
-                    </button>
-                </div>
-                <p class="font-bold w-20 text-right flex-shrink-0">₹${(cartItem.price * cartItem.quantity).toFixed(2)}</p>
-            `;
+            
+            // Handle items that don't have a corresponding product (e.g., reordered items)
+            if (!product) {
+                // For reordered items without matching products, use the item data directly
+                let imageDisplay;
+                if (cartItem.image && (cartItem.image.startsWith('http') || cartItem.image.startsWith('/'))) {
+                    // Handle actual image URLs
+                    imageDisplay = `<img src="${cartItem.image}" alt="${cartItem.name}" class="w-16 h-16 rounded-md object-contain flex-shrink-0" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                   <div class="w-16 h-16 rounded-md bg-gray-200 dark:bg-gray-600 flex items-center justify-center" style="display: none;">
+                                       <span class="text-2xl">🛒</span>
+                                   </div>`;
+                } else if (cartItem.image && cartItem.image.length <= 4) {
+                    // Handle emoji images
+                    imageDisplay = `<span class="text-3xl">${cartItem.image}</span>`;
+                } else {
+                    // Fallback to shopping cart icon
+                    imageDisplay = `<span class="text-3xl">🛒</span>`;
+                }
+                
+                itemElement.innerHTML = `
+                    <div class="w-16 h-16 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                        ${imageDisplay}
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <p class="font-semibold truncate">${cartItem.name}</p>
+                        <p class="text-sm themed-subtle-text">${cartItem.unit} - ₹${cartItem.price.toFixed(2)}</p>
+                    </div>
+                    <div class="flex items-center justify-center border themed-border rounded-lg flex-shrink-0">
+                        <button class="p-2 dec-btn hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" data-id="${cartItem.productId}" data-unit="${cartItem.unit}">
+                            <i class="ph-minus text-red-500"></i>
+                        </button>
+                        <span class="px-4 font-bold min-w-[3rem] text-center">${cartItem.quantity}</span>
+                        <button class="p-2 inc-btn hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors" data-id="${cartItem.productId}" data-unit="${cartItem.unit}">
+                            <i class="ph-plus text-green-500"></i>
+                        </button>
+                    </div>
+                    <p class="font-bold w-20 text-right flex-shrink-0">₹${(cartItem.price * cartItem.quantity).toFixed(2)}</p>
+                `;
+            } else {
+                // For normal products, use the existing logic
+                itemElement.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}" class="w-16 h-16 rounded-md object-contain flex-shrink-0">
+                    <div class="flex-grow min-w-0">
+                        <p class="font-semibold truncate">${product.name}</p>
+                        <p class="text-sm themed-subtle-text">${cartItem.unit} - ₹${cartItem.price.toFixed(2)}</p>
+                    </div>
+                    <div class="flex items-center justify-center border themed-border rounded-lg flex-shrink-0">
+                        <button class="p-2 dec-btn hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" data-id="${product.id}" data-unit="${cartItem.unit}">
+                            <i class="ph-minus text-red-500"></i>
+                        </button>
+                        <span class="px-4 font-bold min-w-[3rem] text-center">${cartItem.quantity}</span>
+                        <button class="p-2 inc-btn hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors" data-id="${product.id}" data-unit="${cartItem.unit}">
+                            <i class="ph-plus text-green-500"></i>
+                        </button>
+                    </div>
+                    <p class="font-bold w-20 text-right flex-shrink-0">₹${(cartItem.price * cartItem.quantity).toFixed(2)}</p>
+                `;
+            }
             cartItemsContainer.appendChild(itemElement);
         });
     };
@@ -1084,6 +1173,18 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     const addToCart = (productId, unit) => {
         const product = products.find(p => p.id === productId);
+        
+        // Handle reordered items that don't have matching products
+        if (!product) {
+            // For reordered items, just increase quantity in existing cart item
+            const cartItem = cart.find(item => item.productId === productId && item.unit === unit);
+            if (cartItem) {
+                cartItem.quantity++;
+            }
+            updateCartView();
+            return;
+        }
+        
         const variant = product.variants.find(v => v.unit === unit);
         
         const cartItem = cart.find(item => item.productId === productId && item.unit === unit);
@@ -1105,7 +1206,12 @@ document.addEventListener('DOMContentLoaded', async() => {
             }
         }
         updateCartView();
-        updateProductCardUI(productId);
+        
+        // Only update product card UI if it's a real product
+        const product = products.find(p => p.id === productId);
+        if (product) {
+            updateProductCardUI(productId);
+        }
     };
 
     // MongoDB-enabled checkout function
@@ -1280,10 +1386,10 @@ document.addEventListener('DOMContentLoaded', async() => {
         document.body.classList.add('modal-open');
         
         // Set back button color based on current theme
-        const backBtn = document.querySelector('#close-profile-modal-btn i');
-        if (backBtn) {
+        const profileBackIcon = document.getElementById('profile-back-icon');
+        if (profileBackIcon) {
             const isDarkMode = htmlEl.classList.contains('dark');
-            backBtn.style.color = isDarkMode ? '#bef264' : '#14532d';
+            profileBackIcon.style.color = isDarkMode ? '#bef264' : '#14532d';
         }
     };
     const hideEditProfileModal = () => {
@@ -1301,7 +1407,9 @@ document.addEventListener('DOMContentLoaded', async() => {
     viewCartBtn.addEventListener('click', showCartModal);
     closeModalBtn.addEventListener('click', hideCartModal);
     continueShoppingBtn.addEventListener('click', hideCartModal);
-    profileBtn.addEventListener('click', showProfileModal);
+    profileBtn.addEventListener('click', () => {
+        window.location.href = './profile.html';
+    });
     closeProfileModalBtn.addEventListener('click', hideProfileModal);
     
     editProfileBtn.addEventListener('click', () => {
@@ -1361,42 +1469,55 @@ document.addEventListener('DOMContentLoaded', async() => {
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
+    const profileBackIcon = document.getElementById('profile-back-icon');
     const htmlEl = document.documentElement;
+
+    const updateIconColors = (isDarkMode) => {
+        const lightColor = '#14532d';
+        const darkColor = '#bef264';
+        const color = isDarkMode ? darkColor : lightColor;
+        
+        sunIcon.style.color = color;
+        moonIcon.style.color = color;
+        if (profileBackIcon) profileBackIcon.style.color = color;
+        
+        // Update search bar styling
+        const searchBar = document.getElementById('search-bar');
+        const searchIcon = document.querySelector('.ph-magnifying-glass');
+        if (searchBar) {
+            if (isDarkMode) {
+                searchBar.style.backgroundColor = '#1e293b';
+                searchBar.style.borderColor = '#334155';
+                searchBar.style.color = '#ffffff';
+                if (searchIcon) searchIcon.style.color = '#6b7280';
+            } else {
+                searchBar.style.backgroundColor = '#ffffff';
+                searchBar.style.borderColor = '#e5e7eb';
+                searchBar.style.color = '#111827';
+                if (searchIcon) searchIcon.style.color = '#9ca3af';
+            }
+        }
+    };
 
     const toggleTheme = () => {
         htmlEl.classList.toggle('dark');
         const isDarkMode = htmlEl.classList.contains('dark');
         sunIcon.classList.toggle('hidden', isDarkMode);
         moonIcon.classList.toggle('hidden', !isDarkMode);
-        
-        // Update icon colors
-        const lightColor = '#14532d';
-        const darkColor = '#bef264';
-        sunIcon.style.color = isDarkMode ? darkColor : lightColor;
-        moonIcon.style.color = isDarkMode ? darkColor : lightColor;
-        
-        // Update back button color
-        const backBtn = document.querySelector('#close-profile-modal-btn i');
-        if (backBtn) backBtn.style.color = isDarkMode ? darkColor : lightColor;
-        
+        updateIconColors(isDarkMode);
         localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
     };
 
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    const isDarkMode = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    
+    if (isDarkMode) {
         htmlEl.classList.add('dark');
         sunIcon.classList.add('hidden');
         moonIcon.classList.remove('hidden');
-        sunIcon.style.color = '#bef264';
-        moonIcon.style.color = '#bef264';
-        const backBtn = document.querySelector('#close-profile-modal-btn i');
-        if (backBtn) backBtn.style.color = '#bef264';
-    } else {
-        sunIcon.style.color = '#14532d';
-        moonIcon.style.color = '#14532d';
-        const backBtn = document.querySelector('#close-profile-modal-btn i');
-        if (backBtn) backBtn.style.color = '#14532d';
     }
+    
+    updateIconColors(isDarkMode);
     themeToggleBtn.addEventListener('click', toggleTheme);
     
     // --- INITIAL RENDER ---

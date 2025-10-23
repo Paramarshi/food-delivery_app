@@ -8,6 +8,8 @@ require('dotenv').config({ path: '.env.local' });
 console.log('🔍 Environment check:');
 console.log('- DATABASE_URL exists:', !!process.env.DATABASE_URL);
 console.log('- POSTGRES_URL exists:', !!process.env.POSTGRES_URL);
+console.log('- CLERK_PUBLISHABLE_KEY exists:', !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+console.log('- CLERK_PUBLISHABLE_KEY value:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? `${process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.substring(0, 20)}...` : 'Not found');
 
 // Database connection
 const pool = new Pool({
@@ -28,7 +30,7 @@ pool.connect((err, client, release) => {
 });
 
 const app = express();
-const PORT = 3001;
+const PORT = 3000;
 
 // Middleware
 app.use(cors());
@@ -49,6 +51,9 @@ app.get('/api/health', (req, res) => {
 
 // Config endpoint for client-side environment variables
 app.get('/api/config', (req, res) => {
+  console.log('🔑 Config endpoint called');
+  console.log('- Sending CLERK_PUBLISHABLE_KEY:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? `${process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.substring(0, 20)}...` : 'Not found');
+  
   res.json({
     CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
     CLERK_FRONTEND_API: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || ''

@@ -1,68 +1,106 @@
 # Grocery Mart - Food Delivery App
 
-A modern, responsive grocery delivery application built with vanilla JavaScript, Tailwind CSS, and Vercel serverless functions.
+A modern, responsive grocery delivery application built with vanilla JavaScript, Tailwind CSS, Clerk Authentication, and Vercel serverless functions.
+
+## ✨ Features
+
+- **🎨 Modern UI**: Clean, responsive design with dark/light theme support
+- **🔐 Authentication**: Secure user authentication via Clerk
+- **🛒 Real-time Cart**: Add/remove items with instant updates
+- **💳 Fast Checkout**: Streamlined order process
+- **📦 Order Tracking**: View order history and status
+- **👤 User Profiles**: Complete profile management with favorites and loyalty points
+- **📱 Mobile Responsive**: Works perfectly on all devices
+- **⚡ Serverless Backend**: Scalable API with PostgreSQL database
+
+## � Quick Start
+
+### Prerequisites
+- Node.js (v14 or higher)
+- A Clerk account (free at [clerk.com](https://clerk.com))
+
+### Setup in 5 Minutes
+
+1. **Clone and install**:
+   ```bash
+   git clone <your-repo-url>
+   cd grocery-mart-delivery
+   npm install
+   ```
+
+2. **Set up Clerk** (see [QUICK_START_CLERK.md](./QUICK_START_CLERK.md)):
+   - Create Clerk account at https://clerk.com
+   - Get your API keys from dashboard
+   - Create `.env` file with your keys
+
+3. **Start development server**:
+   ```bash
+   node local-server.js
+   ```
+
+4. **Open in browser**:
+   ```
+   http://localhost:3000
+   ```
+
+## 📚 Documentation
+
+### Getting Started
+- **[Quick Start - Clerk Setup](./QUICK_START_CLERK.md)** ⚡ - 5-minute guide to get authentication working
+- **[Complete Clerk Setup](./CLERK_SETUP.md)** 📖 - Detailed setup guide with troubleshooting
+- **[Theme Customization](./CLERK_THEME_GUIDE.md)** 🎨 - Match Clerk UI to your app's theme
+- **[Integration Overview](./CLERK_INTEGRATION.md)** 📋 - Summary of what's built and how it works
 
 ## 📁 Project Structure
 
 ```
 grocery-mart-delivery/
-├── public/                   # Frontend files (served by Vercel)
-│   ├── index.html            # Main landing page
-│   ├── items.html            # Product catalog page
-│   └── prototype.html        # Prototype/demo page
-├── api/                      # Serverless API functions
-│   ├── products.js           # Get products endpoint
-│   ├── orders.js             # Order management endpoints
-│   ├── users.js              # User management endpoints
-│   ├── payment-verify.js     # Payment verification
-│   └── health.js             # Health check endpoint
-├── package.json              # Project dependencies
-├── vercel.json               # Vercel deployment configuration
-└── README.md                 # This file
+├── public/                        # Frontend files
+│   ├── index.html                 # Main app with products & cart
+│   ├── profile.html               # User profile page (NEW!)
+│   ├── items.html                 # Product catalog
+│   └── prototype.html             # Demo page
+├── api/                           # Serverless API functions
+│   ├── config.js                  # Clerk configuration endpoint
+│   ├── products.js                # Product management
+│   ├── orders.js                  # Order management
+│   ├── users.js                   # User management
+│   ├── payment-verify.js          # Payment verification
+│   └── health.js                  # Health check
+├── database/                      # Database initialization
+│   └── init.js                    # PostgreSQL setup
+├── Documentation/                 # Setup guides
+│   ├── QUICK_START_CLERK.md       # ⚡ 5-min Clerk setup
+│   ├── CLERK_SETUP.md             # 📖 Complete guide
+│   ├── CLERK_THEME_GUIDE.md       # 🎨 Theme customization
+│   └── CLERK_INTEGRATION.md       # 📋 Technical overview
+├── .env.example                   # Environment variables template
+├── .gitignore                     # Git ignore file
+├── local-server.js                # Local development server
+├── package.json                   # Dependencies
+├── vercel.json                    # Vercel config
+└── README.md                      # This file
 ```
 
-## 🛠️ Features
+## 🔧 Local Development
 
-- **Modern UI**: Clean, responsive design with dark/light theme
-- **Real-time Cart**: Add/remove items with instant updates
-- **Fast Checkout**: Streamlined order process
-- **Order Tracking**: View order history and status
-- **Profile Management**: User profile and address management
-- **Mobile Responsive**: Works perfectly on all devices
-- **Serverless Backend**: Scalable API with PostgreSQL database
+### Option 1: Using Node Server (Recommended)
+```bash
+node local-server.js
+# Opens at http://localhost:3000
+```
 
-### 🔧 Local Development
+### Option 2: Using Vercel CLI
+```bash
+vercel dev
+# Opens at http://localhost:3000
+```
 
-1. **Clone the repository**:
-   ```bash
-   git clone <your-repo-url>
-   cd grocery-mart-delivery
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**:
-   ```bash
-   cp .env.example .env.local
-   # Edit .env.local with your database URL
-   ```
-
-4. **Start development server**:
-   ```bash
-   vercel dev
-   ```
-   
-   Or use a simple HTTP server for frontend-only testing:
-   ```bash
-   python -m http.server 8000 --directory public
-   ```
-
-5. **Access the application**:
-   - Vercel dev: `http://localhost:3000`
-   - Python server: `http://localhost:8000`
+### Option 3: Simple HTTP Server (Frontend only)
+```bash
+python -m http.server 8000 --directory public
+# Opens at http://localhost:8000
+```
 
 ## 📊 API Endpoints
 

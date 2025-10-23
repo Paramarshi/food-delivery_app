@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Grocery Mart</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->   
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Clerk Authentication - Local Script -->
+    <script src="./clerk.browser.js"></script>
+
+    <style>
+        /* Define CSS variables for theming */
+        :root {
+            --bg-light: #f7fee7; /* lime-50 */
+            --text-light: #1a2e05; /* dark green */
+            --card-bg-light: #ffffff;
+            --border-light: #dcfce7; /* green-100 */
+            --subtle-text-light: #4d5e42; /* darker green-gray for better contrast */
+            --accent-color-1: #84cc16; /* lime-500 */
+            --accent-color-2: #a3e635; /* lime-400 */
+
+            --bg-dark: #0a1122; /* dark blue */
+            --text-dark: #ecfccb; /* lime-100 */
+            --card-bg-dark: #1e293b; /* slate-800 */
+            --border-dark: #334155; /* slate-700 */
+            --subtle-text-dark: #94a3b8; /* slate-400 */
+
+            /* Background pattern variables */
+            --bg-image-light: url('https://www.transparenttextures.com/patterns/cubes.png');
+            --bg-image-dark: url('https://www.transparenttextures.com/patterns/dark-matter.png');
+            
+            /* Glassmorphism background variables */
+            --glass-bg-light: rgba(255, 255, 255, 0.85);
+            --glass-bg-dark: rgba(12, 26, 46, 0.7);
+        }
+
+        /* Apply light theme by default */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            background-image: var(--bg-image-light);
+            transition: background-image 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Dark mode */
+        .dark body {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+            background-image: var(--bg-image-dark);
+        }
+
+        /* Utility classes */
+        .themed-bg {
+            background-color: var(--card-bg-light);
+        }
+        .dark .themed-bg {
+            background-color: var(--card-bg-dark);
+        }
+        .themed-text {
+            color: var(--text-light);
+        }
+        .dark .themed-text {
+            color: var(--text-dark);
+        }
+        .themed-subtle-text {
+            color: var(--subtle-text-light);
+        }
+        .dark .themed-subtle-text {
+            color: var(--subtle-text-dark);
+        }
+        .themed-border {
+            border-color: var(--border-light);
+        }
+        .dark .themed-border {
+            border-color: var(--border-dark);
+        }
+        .themed-card-bg {
+            background-color: var(--card-bg-light);
+        }
+        .dark .themed-card-bg {
+            background-color: var(--card-bg-dark);
+        }
+
+        /* Glass effect */
+        .glass-effect {
+            background-color: var(--glass-bg-light);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        .dark .glass-effect {
+            background-color: var(--glass-bg-dark);
+            border-color: rgba(51, 65, 85, 0.5);
+        }
+
+        /* Button styles */
+        .btn-primary {
+            background-image: linear-gradient(45deg, var(--accent-color-1), var(--accent-color-2), var(--accent-color-1));
+            background-size: 200% auto;
+            color: #1a2e05;
+            font-weight: 700;
+            transition: all 0.4s cubic-bezier(.25,.8,.25,1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            background-position: right center;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(132, 204, 22, 0.2), 0 4px 6px -4px rgba(132, 204, 22, 0.1);
+        }
+
+        /* Profile Tab styles */
+        .profile-tab {
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .profile-tab.active {
+            border-bottom-color: var(--accent-color-1);
+            color: var(--text-light);
+        }
+        .dark .profile-tab.active {
+            color: var(--text-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto max-w-6xl px-4 sm:px-6 py-8">
+        <!-- Header -->
+        <header class="sticky top-0 z-50 flex justify-between items-center mb-8 py-4 glass-effect -mx-4 sm:-mx-6 px-4 sm:px-6 rounded-lg">
+            <div class="flex items-center gap-3">
+                <button onclick="window.location.href='./index.html'" class="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-all" title="Back to Home">
+                    <i class="ph ph-arrow-left text-2xl text-[#1a2e05] dark:text-[#bef264]"></i>
+                </button>
+                <h1 class="text-2xl sm:text-3xl font-bold">My Profile</h1>
+            </div>
+            <button id="theme-toggle" class="p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] transition-all transform hover:scale-110" title="Toggle theme">
+                <i id="sun-icon" class="ph ph-sun text-3xl"></i>
+                <i id="moon-icon" class="ph ph-moon text-3xl hidden"></i>
+            </button>
+        </header>
+
+        <!-- Sign In Prompt for Guest Users -->
+        <div id="sign-in-prompt" class="themed-card-bg border themed-border rounded-xl shadow-lg mb-8 p-8 text-center hidden">
+            <div class="max-w-md mx-auto">
+                <div class="w-20 h-20 rounded-full bg-[color:var(--accent-color-1)] mx-auto mb-4 flex items-center justify-center">
+                    <i class="ph ph-user-circle text-5xl text-[#1a2e05]"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Sign in to Your Account</h2>
+                <p class="themed-subtle-text mb-6">Sign in to access your profile, order history, and personalized recommendations.</p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center mb-4">
+                    <button id="clerk-sign-in-btn" class="btn-primary px-8 py-3 rounded-lg text-lg font-semibold">
+                        <i class="ph ph-sign-in"></i> Sign In
+                    </button>
+                    <button id="clerk-sign-up-btn" class="themed-card-bg border-2 border-[color:var(--accent-color-1)] text-[color:var(--accent-color-1)] px-8 py-3 rounded-lg text-lg font-semibold hover:bg-[color:var(--accent-color-1)] hover:text-[#1a2e05] transition-colors">
+                        <i class="ph ph-user-plus"></i> Sign Up
+                    </button>
+                </div>
+                <p class="text-sm themed-subtle-text">New to GroceryMart? Create an account to get started!</p>
+            </div>
+        </div>
+
+        <!-- Main Profile Layout -->
+        <div id="profile-content" class="grid md:grid-cols-[400px_1fr] gap-6">
+            <!-- Left Sidebar -->
+            <div class="space-y-4">
+                <!-- Profile Card -->
+                <div class="themed-card-bg border themed-border rounded-xl shadow-lg p-6">
+                    <div class="flex items-start gap-4 mb-6">
+                        <img id="profile-avatar" src="https://placehold.co/80x80/a3e635/1a2e05?text=G" alt="User Avatar" class="w-20 h-20 rounded-full border-2 border-[color:var(--accent-color-1)]">
+                        <div class="flex-1">
+                            <h2 id="profile-name" class="text-xl font-bold themed-text">Niraj</h2>
+                            <p id="profile-member-id" class="text-sm themed-subtle-text">7076003050</p>
+                            <span class="inline-block mt-2 px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs font-semibold rounded-full">
+                                <i class="ph ph-crown"></i> daily member
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Membership Info -->
+                    <div class="bg-gradient-to-r from-lime-50 to-green-50 dark:from-lime-900/20 dark:to-green-900/20 rounded-lg p-4 mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm themed-subtle-text">Valid till</span>
+                            <span class="font-bold text-lg">30 Oct</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm themed-subtle-text">Saved</span>
+                            <span class="font-bold text-lg text-green-600">₹<span id="saved-money">392</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Wallet Section -->
+                    <div class="themed-bg border themed-border rounded-lg p-4 mb-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                                <i class="ph ph-wallet text-purple-600 dark:text-purple-400 text-xl"></i>
+                            </div>
+                            <span class="font-medium themed-text">Wallet</span>
+                        </div>
+                        <i class="ph ph-caret-right themed-subtle-text"></i>
+                    </div>
+
+                    <!-- Balance Section -->
+                    <div class="border-t themed-border pt-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-sm themed-subtle-text">Available Balance:</span>
+                            <span class="font-bold">₹0</span>
+                        </div>
+                        <button class="w-full btn-primary py-2 rounded-lg text-sm font-semibold">
+                            Add Balance
+                        </button>
+                    </div>
+
+                    <!-- Free Cash Banner -->
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-3 mt-4 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-gift text-purple-600 dark:text-purple-400"></i>
+                            <span class="text-sm font-medium">Free Cash</span>
+                        </div>
+                        <span class="font-bold text-purple-600 dark:text-purple-400">₹100</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <div class="themed-card-bg border themed-border rounded-xl shadow-lg overflow-hidden">
+                    <button data-section="orders" class="nav-menu-item w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors border-b themed-border">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
+                            <i class="ph ph-shopping-bag text-xl"></i>
+                        </div>
+                        <span class="font-medium">Orders</span>
+                    </button>
+                    <button data-section="support" class="nav-menu-item w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors border-b themed-border">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
+                            <i class="ph ph-headset text-xl"></i>
+                        </div>
+                        <span class="font-medium">Customer Support</span>
+                    </button>
+                    <button data-section="referrals" class="nav-menu-item w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors border-b themed-border">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
+                            <i class="ph ph-users text-xl"></i>
+                        </div>
+                        <span class="font-medium">Manage Referrals</span>
+                    </button>
+                    <button data-section="addresses" class="nav-menu-item w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors border-b themed-border">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
+                            <i class="ph ph-map-pin text-xl"></i>
+                        </div>
+                        <span class="font-medium">Addresses</span>
+                    </button>
+                    <button id="edit-profile-btn" data-section="profile" class="nav-menu-item w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
+                            <i class="ph ph-user text-xl"></i>
+                        </div>
+                        <span class="font-medium">Profile</span>
+                    </button>
+                </div>
+
+                <!-- Logout Button -->
+                <button id="logout-btn" class="w-full themed-card-bg border themed-border rounded-xl shadow-lg p-4 font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center justify-center gap-2">
+                    <i class="ph ph-sign-out"></i>
+                    Logout
+                </button>
+            </div>
+
+            <!-- Right Content Area -->
+            <div class="themed-card-bg border themed-border rounded-xl shadow-lg">
+                <!-- Orders Section (Default) -->
+                <div id="orders-section" class="content-section">
+                    <div class="p-6 border-b themed-border flex items-center justify-between">
+                        <h2 class="text-2xl font-bold flex items-center gap-3">
+                            <button class="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors md:hidden">
+                                <i class="ph ph-arrow-left"></i>
+                            </button>
+                            Orders
+                        </h2>
+                        <select class="themed-bg border themed-border rounded-lg px-4 py-2 text-sm">
+                            <option>All Orders</option>
+                            <option>Last 30 days</option>
+                            <option>Last 6 months</option>
+                        </select>
+                    </div>
+                    <div id="order-history-container" class="p-6 space-y-4">
+                        <!-- Orders will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- Other Sections (Hidden by default) -->
+                <div id="support-section" class="content-section hidden">
+                    <div class="p-6 border-b themed-border">
+                        <h2 class="text-2xl font-bold">Customer Support</h2>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <!-- Contact Options -->
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="themed-bg border themed-border rounded-lg p-4 cursor-pointer hover:shadow-md transition-all">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                                        <i class="ph ph-phone text-blue-600 dark:text-blue-400 text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold themed-text">Call Us</h4>
+                                        <p class="text-sm themed-subtle-text">24/7 Support</p>
+                                    </div>
+                                </div>
+                                <p class="font-semibold text-lg">1800-123-4567</p>
+                            </div>
+
+                            <div class="themed-bg border themed-border rounded-lg p-4 cursor-pointer hover:shadow-md transition-all">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                                        <i class="ph ph-whatsapp-logo text-green-600 dark:text-green-400 text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold themed-text">WhatsApp</h4>
+                                        <p class="text-sm themed-subtle-text">Chat with us</p>
+                                    </div>
+                                </div>
+                                <p class="font-semibold text-lg">+91 98765 43210</p>
+                            </div>
+
+                            <div class="themed-bg border themed-border rounded-lg p-4 cursor-pointer hover:shadow-md transition-all">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                                        <i class="ph ph-envelope text-red-600 dark:text-red-400 text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold themed-text">Email</h4>
+                                        <p class="text-sm themed-subtle-text">We'll reply in 24hrs</p>
+                                    </div>
+                                </div>
+                                <p class="font-semibold text-lg">support@grocerymart.com</p>
+                            </div>
+
+                            <div class="themed-bg border themed-border rounded-lg p-4 cursor-pointer hover:shadow-md transition-all">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                                        <i class="ph ph-chat-circle-dots text-purple-600 dark:text-purple-400 text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold themed-text">Live Chat</h4>
+                                        <p class="text-sm themed-subtle-text">Instant support</p>
+                                    </div>
+                                </div>
+                                <p class="font-semibold text-lg">Start Chat</p>
+                            </div>
+                        </div>
+
+                        <!-- FAQ Section -->
+                        <div class="themed-bg border themed-border rounded-lg p-6">
+                            <h3 class="font-bold text-lg mb-4">Frequently Asked Questions</h3>
+                            <div class="space-y-3">
+                                <details class="themed-bg border themed-border rounded-lg p-4">
+                                    <summary class="font-medium cursor-pointer">How do I track my order?</summary>
+                                    <p class="mt-2 text-sm themed-subtle-text">You can track your order in the Orders section. Click on any order to see real-time tracking updates.</p>
+                                </details>
+                                <details class="themed-bg border themed-border rounded-lg p-4">
+                                    <summary class="font-medium cursor-pointer">What is the refund policy?</summary>
+                                    <p class="mt-2 text-sm themed-subtle-text">Full refunds are available within 24 hours of delivery for damaged or incorrect items. Contact support to initiate a refund.</p>
+                                </details>
+                                <details class="themed-bg border themed-border rounded-lg p-4">
+                                    <summary class="font-medium cursor-pointer">How do I change my delivery address?</summary>
+                                    <p class="mt-2 text-sm themed-subtle-text">Go to the Addresses section and add or edit your saved addresses. You can select a different address during checkout.</p>
+                                </details>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="referrals-section" class="content-section hidden">
+                    <div class="p-6 border-b themed-border">
+                        <h2 class="text-2xl font-bold">Manage Referrals</h2>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <!-- Referral Card -->
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border themed-border rounded-xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 class="text-2xl font-bold mb-2">Refer & Earn ₹100</h3>
+                                    <p class="themed-subtle-text">Share your referral code with friends</p>
+                                </div>
+                                <div class="text-5xl">🎁</div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-slate-800 border themed-border rounded-lg p-4 mb-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm themed-subtle-text mb-1">Your Referral Code</p>
+                                        <p class="text-2xl font-bold font-mono">NIRAJ2025</p>
+                                    </div>
+                                    <button id="copy-referral-btn" class="btn-primary px-4 py-2 rounded-lg">
+                                        <i class="ph ph-copy"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <button class="themed-bg border themed-border px-4 py-2 rounded-lg font-medium hover:shadow-md transition-all">
+                                    <i class="ph ph-whatsapp-logo"></i> Share on WhatsApp
+                                </button>
+                                <button class="themed-bg border themed-border px-4 py-2 rounded-lg font-medium hover:shadow-md transition-all">
+                                    <i class="ph ph-share-network"></i> More Options
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Referral Stats -->
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="themed-bg border themed-border rounded-lg p-4">
+                                <p class="text-sm themed-subtle-text mb-1">Total Referrals</p>
+                                <p class="text-3xl font-bold">5</p>
+                            </div>
+                            <div class="themed-bg border themed-border rounded-lg p-4">
+                                <p class="text-sm themed-subtle-text mb-1">Successful</p>
+                                <p class="text-3xl font-bold text-green-600">3</p>
+                            </div>
+                            <div class="themed-bg border themed-border rounded-lg p-4">
+                                <p class="text-sm themed-subtle-text mb-1">Earnings</p>
+                                <p class="text-3xl font-bold text-purple-600">₹300</p>
+                            </div>
+                        </div>
+
+                        <!-- Referral History -->
+                        <div class="themed-bg border themed-border rounded-lg p-6">
+                            <h3 class="font-bold text-lg mb-4">Referral History</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between py-3 border-b themed-border">
+                                    <div>
+                                        <p class="font-medium">Rahul Kumar</p>
+                                        <p class="text-sm themed-subtle-text">Joined on Oct 15, 2025</p>
+                                    </div>
+                                    <span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-xs font-semibold rounded-full">
+                                        +₹100
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between py-3 border-b themed-border">
+                                    <div>
+                                        <p class="font-medium">Priya Sharma</p>
+                                        <p class="text-sm themed-subtle-text">Joined on Oct 10, 2025</p>
+                                    </div>
+                                    <span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-xs font-semibold rounded-full">
+                                        +₹100
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between py-3">
+                                    <div>
+                                        <p class="font-medium">Amit Patel</p>
+                                        <p class="text-sm themed-subtle-text">Joined on Oct 5, 2025</p>
+                                    </div>
+                                    <span class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 text-xs font-semibold rounded-full">
+                                        +₹100
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="addresses-section" class="content-section hidden">
+                    <div class="p-6 border-b themed-border flex items-center justify-between">
+                        <h2 class="text-2xl font-bold">Saved Addresses</h2>
+                        <button id="add-address-btn" class="btn-primary px-4 py-2 rounded-lg">
+                            <i class="ph ph-plus"></i> Add New Address
+                        </button>
+                    </div>
+                    <div id="addresses-container" class="p-6 space-y-4">
+                        <!-- Addresses will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <div id="profile-section" class="content-section hidden">
+                    <div class="p-6 border-b themed-border">
+                        <h2 class="text-2xl font-bold">Profile Settings</h2>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <!-- Personal Information -->
+                        <div class="themed-bg border themed-border rounded-lg p-6">
+                            <h3 class="font-bold text-lg mb-4">Personal Information</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-sm themed-subtle-text font-medium">Full Name</label>
+                                    <p id="profile-name-display" class="font-semibold text-lg mt-1">Niraj</p>
+                                </div>
+                                <div>
+                                    <label class="text-sm themed-subtle-text font-medium">Email</label>
+                                    <p id="profile-email-display" class="font-semibold text-lg mt-1">guest.user@email.com</p>
+                                </div>
+                                <div>
+                                    <label class="text-sm themed-subtle-text font-medium">Member ID</label>
+                                    <p id="profile-member-id-display" class="font-semibold text-lg mt-1">7076003050</p>
+                                </div>
+                                <button id="open-edit-modal-btn" class="btn-primary px-6 py-2 rounded-lg mt-4">
+                                    <i class="ph ph-pencil-simple"></i> Edit Profile
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Account Settings -->
+                        <div class="themed-bg border themed-border rounded-lg p-6">
+                            <h3 class="font-bold text-lg mb-4">Preferences</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-medium">Order Notifications</p>
+                                        <p class="text-sm themed-subtle-text">Get updates about your orders</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="order-notifications" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-lime-300 dark:peer-focus:ring-lime-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[color:var(--accent-color-1)]"></div>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-medium">Promotional Emails</p>
+                                        <p class="text-sm themed-subtle-text">Receive offers and deals</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="promo-notifications" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-lime-300 dark:peer-focus:ring-lime-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[color:var(--accent-color-1)]"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Danger Zone -->
+                        <div class="themed-bg border border-red-200 dark:border-red-900 rounded-lg p-6">
+                            <h3 class="font-bold text-lg mb-4 text-red-600 dark:text-red-400">Danger Zone</h3>
+                            <button class="w-full px-4 py-3 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors">
+                                <i class="ph ph-trash"></i> Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Modal -->
+        <div id="edit-profile-modal" class="fixed inset-0 glass-effect z-50 p-4 items-center justify-center hidden">
+            <div class="w-full max-w-md themed-card-bg border themed-border rounded-xl p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Edit Profile</h2>
+                    <button id="close-edit-modal" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
+                        <i class="ph ph-x text-2xl"></i>
+                    </button>
+                </div>
+
+                <form id="edit-profile-form" class="space-y-4">
+                    <div>
+                        <label for="edit-name" class="block text-sm font-medium themed-subtle-text mb-2">Full Name</label>
+                        <input type="text" id="edit-name" class="w-full themed-bg border themed-border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] text-gray-900 dark:text-white">
+                    </div>
+
+                    <div>
+                        <label for="edit-email" class="block text-sm font-medium themed-subtle-text mb-2">Email</label>
+                        <input type="email" id="edit-email" placeholder="user@example.com" class="w-full themed-bg border themed-border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] text-gray-900 dark:text-white">
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" id="cancel-edit" class="flex-1 themed-card-bg border themed-border font-bold py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="flex-1 btn-primary py-3 rounded-lg">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Address Modal -->
+        <div id="add-address-modal" class="fixed inset-0 glass-effect z-50 p-4 items-center justify-center hidden">
+            <div class="w-full max-w-md themed-card-bg border themed-border rounded-xl p-6 shadow-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Add New Address</h2>
+                    <button id="close-address-modal" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
+                        <i class="ph ph-x text-2xl"></i>
+                    </button>
+                </div>
+
+                <form id="add-address-form" class="space-y-4">
+                    <div>
+                        <label for="address-label" class="block text-sm font-medium themed-subtle-text mb-2">Label</label>
+                        <select id="address-label" class="w-full themed-bg border themed-border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] text-gray-900 dark:text-white">
+                            <option>Home</option>
+                            <option>Work</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="address-line1" class="block text-sm font-medium themed-subtle-text mb-2">Address Line 1</label>
+                        <input type="text" id="address-line1" placeholder="House/Flat No., Building Name" class="w-full themed-bg border themed-border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] text-gray-900 dark:text-white" required>
+                    </div>
+
+                    <div>
+                        <label for="address-line2" class="block text-sm font-medium themed-subtle-text mb-2">Address Line 2</label>
+                        <input type="text" id="address-line2" placeholder="Street, Area, Landmark" class="w-full themed-bg border themed-border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] text-gray-900 dark:text-white" required>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="address-city" class="block text-sm font-medium themed-subtle-text mb-2">City</label>
+                            <input type="text" id="address-city" placeholder="Mumbai" class="w-full themed-bg border themed-border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] text-gray-900 dark:text-white" required>
+                        </div>
+                        <div>
+                            <label for="address-pincode" class="block text-sm font-medium themed-subtle-text mb-2">Pincode</label>
+                            <input type="text" id="address-pincode" placeholder="400001" maxlength="6" class="w-full themed-bg border themed-border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] text-gray-900 dark:text-white" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="address-phone" class="block text-sm font-medium themed-subtle-text mb-2">Contact Number</label>
+                        <input type="tel" id="address-phone" placeholder="+91 98765 43210" class="w-full themed-bg border themed-border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] text-gray-900 dark:text-white" required>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" id="cancel-address" class="flex-1 themed-card-bg border themed-border font-bold py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="flex-1 btn-primary py-3 rounded-lg">
+                            Save Address
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Clerk initialization
+        let clerk;
+        let currentUser = null;
+        let isSignedIn = false;
+
+        async function initializeClerk() {
+            try {
+                console.log('🔄 Initializing Clerk on profile page...');
+                
+                // Get Clerk configuration from our API
+                const configResponse = await fetch('/api/config');
+                console.log('📡 Config response status:', configResponse.status);
+                
+                if (!configResponse.ok) {
+                    throw new Error(`Config API failed: ${configResponse.status}`);
+                }
+                
+                const config = await configResponse.json();
+                console.log('⚙️ Config received:', config);
+                
+                if (!config.CLERK_PUBLISHABLE_KEY) {
+                    console.error('❌ No Clerk publishable key found in config');
+                    showSignInPrompt();
+                    return;
+                }
+                
+                console.log('🔑 Clerk key found:', config.CLERK_PUBLISHABLE_KEY.substring(0, 20) + '...');
+                
+                // Wait for Clerk to be available
+                if (!window.Clerk) {
+                    console.log('⏳ Waiting for Clerk to load...');
+                    await new Promise(resolve => {
+                        const checkClerk = () => {
+                            if (window.Clerk) {
+                                resolve();
+                            } else {
+                                setTimeout(checkClerk, 100);
+                            }
+                        };
+                        checkClerk();
+                    });
+                }
+                
+                clerk = window.Clerk;
+                console.log('🏗️ Loading Clerk with key...');
+                
+                await clerk.load({
+                    publishableKey: config.CLERK_PUBLISHABLE_KEY
+                });
+                
+                console.log('✅ Clerk loaded successfully on profile page');
+
+                if (clerk.user) {
+                    currentUser = clerk.user;
+                    isSignedIn = true;
+                    loadUserProfile(); // Load user-specific profile
+                    updateProfileUI();
+                    showProfileContent();
+                    loadOrderHistory(); // Load user-specific orders
+                    console.log('👤 User is signed in:', currentUser.firstName);
+                } else {
+                    console.log('👤 User is not signed in, showing prompt');
+                    showSignInPrompt();
+                }
+
+                // Listen for sign-in events
+                clerk.addListener(({ user }) => {
+                    if (user) {
+                        currentUser = user;
+                        isSignedIn = true;
+                        loadUserProfile(); // Load user-specific profile
+                        updateProfileUI();
+                        showProfileContent();
+                        loadOrderHistory(); // Load user-specific orders
+                        console.log('👤 User signed in on profile page:', user.firstName);
+                    } else {
+                        currentUser = null;
+                        isSignedIn = false;
+                        showSignInPrompt();
+                        console.log('👤 User signed out on profile page');
+                    }
+                });
+            } catch (error) {
+                console.error('❌ Clerk initialization error on profile page:', error);
+                showSignInPrompt();
+            }
+        }
+
+        // Show sign-in prompt
+        function showSignInPrompt() {
+            const signInPrompt = document.getElementById('sign-in-prompt');
+            const profileContent = document.getElementById('profile-content');
+            
+            if (signInPrompt) signInPrompt.classList.remove('hidden');
+            if (profileContent) profileContent.classList.add('hidden');
+        }
+
+        // Show profile content
+        function showProfileContent() {
+            const signInPrompt = document.getElementById('sign-in-prompt');
+            const profileContent = document.getElementById('profile-content');
+            
+            if (signInPrompt) signInPrompt.classList.add('hidden');
+            if (profileContent) profileContent.classList.remove('hidden');
+        }
+
+        // Clerk sign-in buttons
+        const clerkSignInBtn = document.getElementById('clerk-sign-in-btn');
+        const clerkSignUpBtn = document.getElementById('clerk-sign-up-btn');
+        
+        if (clerkSignInBtn) {
+            clerkSignInBtn.addEventListener('click', async () => {
+                console.log('🔐 Sign In button clicked');
+                if (clerk) {
+                    try {
+                        await clerk.openSignIn();
+                    } catch (error) {
+                        console.error('Error opening sign in:', error);
+                    }
+                } else {
+                    console.error('❌ Clerk not initialized');
+                    alert('Authentication system not ready. Please refresh the page.');
+                }
+            });
+        }
+        
+        if (clerkSignUpBtn) {
+            clerkSignUpBtn.addEventListener('click', async () => {
+                console.log('📝 Sign Up button clicked');
+                if (clerk) {
+                    try {
+                        await clerk.openSignUp();
+                    } catch (error) {
+                        console.error('Error opening sign up:', error);
+                    }
+                } else {
+                    console.error('❌ Clerk not initialized');
+                    alert('Authentication system not ready. Please refresh the page.');
+                }
+            });
+        }
+
+        // Get user-specific storage key
+        function getUserStorageKey(baseKey) {
+            if (currentUser && currentUser.id) {
+                return `${baseKey}_${currentUser.id}`;
+            }
+            return baseKey; // Fallback to non-user-specific key for guests
+        }
+
+        // Profile data
+        let userProfile = {
+            name: 'Guest User',
+            email: 'guest.user@email.com'
+        };
+
+        // Load profile from localStorage with user-specific key
+        function loadUserProfile() {
+            const profileKey = getUserStorageKey('grocerymartProfile');
+            const savedProfile = localStorage.getItem(profileKey);
+            if (savedProfile) {
+                const parsed = JSON.parse(savedProfile);
+                userProfile = { ...userProfile, ...parsed };
+            } else if (currentUser) {
+                // If logged in but no profile, use Clerk data
+                userProfile = {
+                    name: currentUser.fullName || currentUser.firstName || 'User',
+                    email: currentUser.primaryEmailAddress?.emailAddress || 'user@email.com'
+                };
+                // Save initial profile
+                localStorage.setItem(profileKey, JSON.stringify(userProfile));
+            }
+        }
+
+        // Initial load for guest users
+        loadUserProfile();
+
+        // Elements
+        const profileAvatar = document.getElementById('profile-avatar');
+        const profileName = document.getElementById('profile-name');
+        const profileEmail = document.getElementById('profile-email');
+        const profileEmailDisplay = document.getElementById('profile-email-display');
+        const editProfileBtn = document.getElementById('edit-profile-btn');
+        const openEditModalBtn = document.getElementById('open-edit-modal-btn');
+        const editProfileModal = document.getElementById('edit-profile-modal');
+        const closeEditModal = document.getElementById('close-edit-modal');
+        const editProfileForm = document.getElementById('edit-profile-form');
+        const cancelEdit = document.getElementById('cancel-edit');
+        const logoutBtn = document.getElementById('logout-btn');
+        const orderHistoryContainer = document.getElementById('order-history-container');
+
+        // Theme toggle
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        const htmlEl = document.documentElement;
+
+        const updateIconColors = (isDarkMode) => {
+            const lightColor = '#14532d';
+            const darkColor = '#bef264';
+            const color = isDarkMode ? darkColor : lightColor;
+            
+            sunIcon.style.color = color;
+            moonIcon.style.color = color;
+        };
+
+        const toggleTheme = () => {
+            htmlEl.classList.toggle('dark');
+            const isDarkMode = htmlEl.classList.contains('dark');
+            sunIcon.classList.toggle('hidden', isDarkMode);
+            moonIcon.classList.toggle('hidden', !isDarkMode);
+            updateIconColors(isDarkMode);
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        };
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme');
+        const isDarkMode = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        
+        if (isDarkMode) {
+            htmlEl.classList.add('dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        }
+        
+        updateIconColors(isDarkMode);
+        themeToggleBtn.addEventListener('click', toggleTheme);
+
+        // Tab switching
+        const profileTabs = document.querySelectorAll('.profile-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        profileTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                profileTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const tabName = tab.dataset.tab;
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(tabName + '-tab').classList.remove('hidden');
+            });
+        });
+
+        // Update profile UI
+        function updateProfileUI() {
+            if (currentUser) {
+                userProfile.name = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim();
+                userProfile.email = currentUser.emailAddresses?.[0]?.emailAddress || userProfile.email;
+            }
+
+            // Update all name and email elements
+            const nameElements = [profileName, document.getElementById('profile-name-display')];
+            nameElements.forEach(el => {
+                if (el) el.textContent = userProfile.name;
+            });
+
+            const emailElements = [profileEmail, profileEmailDisplay];
+            emailElements.forEach(el => {
+                if (el) el.textContent = userProfile.email;
+            });
+
+            const initial = userProfile.name.charAt(0).toUpperCase();
+            if (profileAvatar) profileAvatar.src = `https://placehold.co/128x128/a3e635/1a2e05?text=${initial}`;
+        }
+
+        // Edit profile - modal opener
+        if (openEditModalBtn) {
+            openEditModalBtn.addEventListener('click', () => {
+                document.getElementById('edit-name').value = userProfile.name;
+                document.getElementById('edit-email').value = userProfile.email;
+                editProfileModal.classList.remove('hidden');
+                editProfileModal.classList.add('flex');
+            });
+        }
+
+        closeEditModal.addEventListener('click', () => {
+            editProfileModal.classList.add('hidden');
+            editProfileModal.classList.remove('flex');
+        });
+
+        cancelEdit.addEventListener('click', () => {
+            editProfileModal.classList.add('hidden');
+            editProfileModal.classList.remove('flex');
+        });
+
+        editProfileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            userProfile.name = document.getElementById('edit-name').value;
+            userProfile.email = document.getElementById('edit-email').value;
+            
+            // Save with user-specific key
+            const profileKey = getUserStorageKey('grocerymartProfile');
+            localStorage.setItem(profileKey, JSON.stringify(userProfile));
+            updateProfileUI();
+            
+            editProfileModal.classList.add('hidden');
+            editProfileModal.classList.remove('flex');
+        });
+
+        // Load order history
+        function loadOrderHistory() {
+            // Use user-specific storage key
+            const ordersKey = getUserStorageKey('grocerymartOrders');
+            const savedOrders = localStorage.getItem(ordersKey);
+            let orders = [];
+
+            if (savedOrders) {
+                orders = JSON.parse(savedOrders);
+                
+                // Data migration: Ensure all orders have proper price data
+                orders = orders.map(order => {
+                    if (order.items) {
+                        order.items = order.items.map(item => {
+                            // If item doesn't have a price, assign a default based on item name or use 50
+                            if (!item.price || item.price === 0) {
+                                // Default prices for common items
+                                const defaultPrices = {
+                                    'Fresh Apples': 80,
+                                    'Ripe Bananas': 45,
+                                    'Whole Wheat Bread': 35,
+                                    'Free-Range Eggs': 80,
+                                    'Fresh Milk': 45,
+                                    'Mangoes': 120,
+                                    'Pineapple': 60,
+                                    'Ginger (Adrak)': 25
+                                };
+                                item.price = defaultPrices[item.name] || 50;
+                            }
+                            
+                            // Ensure quantity exists
+                            if (!item.quantity) {
+                                item.quantity = 1;
+                            }
+                            
+                            // Ensure productId exists - generate consistent IDs
+                            if (!item.productId) {
+                                item.productId = `reorder-${item.name.replace(/\s+/g, '-').toLowerCase()}-${item.unit.replace(/\s+/g, '-').toLowerCase()}`;
+                            }
+                            
+                            // Ensure image exists
+                            if (!item.image) {
+                                item.image = '📦';
+                            }
+                            
+                            return item;
+                        });
+                        
+                        // Recalculate order total from items to ensure accuracy
+                        order.total = order.items.reduce((sum, item) => {
+                            const itemPrice = parseFloat(item.price) || 0;
+                            const itemQty = parseInt(item.quantity) || 1;
+                            return sum + (itemPrice * itemQty);
+                        }, 0);
+                    }
+                    return order;
+                });
+                
+                // Save the migrated data back to localStorage with user-specific key
+                localStorage.setItem(ordersKey, JSON.stringify(orders));
+            }
+            // Don't create default orders - let users build their own order history
+
+            if (orders.length === 0) {
+                orderHistoryContainer.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📦</div>
+                        <p class="themed-text text-lg font-semibold mb-2">No orders yet</p>
+                        <p class="themed-subtle-text">Start shopping to see your order history here!</p>
+                        <a href="./index.html" class="inline-block mt-4 btn-primary px-6 py-3 rounded-lg">
+                            <i class="ph ph-shopping-cart"></i> Start Shopping
+                        </a>
+                    </div>
+                `;
+                // Update stats with zero values
+                document.getElementById('total-orders').textContent = '0';
+                document.getElementById('total-spent').textContent = '0.00';
+                document.getElementById('avg-order').textContent = '0.00';
+                document.getElementById('saved-money').textContent = '0.00';
+                return;
+            }
+
+            orderHistoryContainer.innerHTML = '';
+            orders.forEach(order => {
+                const orderElement = document.createElement('div');
+                orderElement.className = 'themed-bg border themed-border rounded-lg p-4 hover:shadow-md transition-shadow';
+                
+                const itemsHtml = order.items.map(item => {
+                    // Ensure we have valid numbers for price and quantity
+                    const price = parseFloat(item.price) || 0;
+                    const quantity = parseInt(item.quantity) || 1;
+                    const total = (price * quantity).toFixed(2);
+                    
+                    // Debug logging
+                    console.log(`Item: ${item.name}, Price: ${item.price}, Parsed Price: ${price}, Quantity: ${quantity}, Total: ${total}`);
+                    
+                    return `
+                    <div class="flex items-center justify-between py-2 border-b themed-border last:border-b-0">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${item.image || '📦'}</span>
+                            <div>
+                                <p class="font-medium text-sm themed-text">${item.name || 'Unknown Item'}</p>
+                                <p class="text-xs themed-subtle-text">${item.unit || 'piece'} × ${quantity}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-semibold text-sm themed-text">₹${total}</span>
+                            <button class="reorder-item-btn bg-[color:var(--accent-color-1)] text-[#1a2e05] px-3 py-1 rounded-lg text-xs font-medium hover:bg-[color:var(--accent-color-2)] transition-colors" 
+                                    data-item='${JSON.stringify(item)}'>
+                                <i class="ph ph-shopping-cart"></i> Reorder
+                            </button>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+                
+                orderElement.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-[color:var(--accent-color-1)] flex items-center justify-center text-[#1a2e05] font-bold">
+                                <i class="ph ph-shopping-bag text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold themed-text">Order #${order.id}</h4>
+                                <p class="text-sm themed-subtle-text">
+                                    <i class="ph ph-calendar-blank"></i> ${new Date(order.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                            order.status === 'delivered' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+                            order.status === 'processing' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+                        }">
+                            ${order.status || 'delivered'}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="font-medium text-sm mb-2 themed-subtle-text">Items Ordered:</h5>
+                        <div class="space-y-1">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center pt-3 border-t themed-border">
+                        <button class="reorder-all-btn text-[color:var(--accent-color-1)] hover:underline text-sm font-medium" 
+                                data-order='${JSON.stringify(order)}'>
+                            <i class="ph ph-arrow-clockwise"></i> Reorder All Items
+                        </button>
+                        <p class="font-bold text-lg themed-text">₹${order.total.toFixed(2)}</p>
+                    </div>
+                `;
+                orderHistoryContainer.appendChild(orderElement);
+            });
+
+            // Update stats
+            updateStats(orders);
+        }
+
+        // Update profile stats
+        function updateStats(orders) {
+            const totalOrders = orders.length;
+            const totalSpent = orders.reduce((sum, order) => sum + order.total, 0);
+            const avgOrder = totalOrders > 0 ? totalSpent / totalOrders : 0;
+            const savedMoney = totalSpent * 0.15; // Assume 15% savings
+
+            document.getElementById('total-orders').textContent = totalOrders;
+            document.getElementById('total-spent').textContent = totalSpent.toFixed(2);
+            document.getElementById('avg-order').textContent = avgOrder.toFixed(2);
+            document.getElementById('saved-money').textContent = savedMoney.toFixed(2);
+        }
+
+        // Logout
+        logoutBtn.addEventListener('click', async () => {
+            if (clerk && currentUser) {
+                await clerk.signOut();
+                isSignedIn = false;
+                currentUser = null;
+            }
+            
+            // Don't remove global profile, just reload for guest
+            // Show sign-in prompt instead of redirecting
+            showSignInPrompt();
+            
+            // Reset to guest user data
+            userProfile = {
+                name: 'Guest User',
+                email: 'guest.user@email.com'
+            };
+            
+            // Reload the page to clear user-specific data
+            location.reload();
+        });
+
+        // Reorder functionality
+        function addToCart(item) {
+            try {
+                // Get existing cart from localStorage
+                let cart = localStorage.getItem('grocerymartCart');
+                cart = cart ? JSON.parse(cart) : [];
+                
+                // Validate item data and provide defaults
+                if (!item || !item.name) {
+                    showNotification('Invalid item data', 'error');
+                    return;
+                }
+                
+                // Ensure we have proper price - use the item's actual price
+                let itemPrice = parseFloat(item.price);
+                if (!itemPrice || itemPrice === 0 || isNaN(itemPrice)) {
+                    // Default prices for common items as fallback
+                    const defaultPrices = {
+                        'Fresh Apples': 80,
+                        'Ripe Bananas': 45,
+                        'Whole Wheat Bread': 35,
+                        'Free-Range Eggs': 80,
+                        'Fresh Milk': 45,
+                        'Mangoes': 120,
+                        'Pineapple': 60,
+                        'Ginger (Adrak)': 25
+                    };
+                    itemPrice = defaultPrices[item.name] || 50;
+                }
+                
+                // Generate consistent productId based on item name and unit
+                // This ensures the same item always has the same ID
+                const productId = item.productId || `reorder-${item.name.replace(/\s+/g, '-').toLowerCase()}-${item.unit.replace(/\s+/g, '-').toLowerCase()}`;
+                const unit = item.unit || 'piece';
+                const quantity = parseInt(item.quantity) || 1;
+                const itemImage = item.image || '🛒';
+                
+                // Check if item already exists in cart by productId and unit
+                const existingItemIndex = cart.findIndex(cartItem => 
+                    cartItem.productId === productId && cartItem.unit === unit
+                );
+                
+                if (existingItemIndex > -1) {
+                    // If item exists, increase quantity and ensure price is correct
+                    cart[existingItemIndex].quantity += quantity;
+                    cart[existingItemIndex].price = itemPrice; // Update price to ensure consistency
+                    cart[existingItemIndex].image = itemImage; // Update image
+                    cart[existingItemIndex].name = item.name; // Ensure name is consistent
+                } else {
+                    // If item doesn't exist, add new item with the structure expected by main app
+                    cart.push({
+                        productId: productId,
+                        unit: unit,
+                        quantity: quantity,
+                        price: itemPrice,
+                        name: item.name,
+                        image: itemImage
+                    });
+                }
+                
+                // Save updated cart to localStorage
+                localStorage.setItem('grocerymartCart', JSON.stringify(cart));
+                
+                // Show confirmation message with price
+                showNotification(`${item.name} (₹${itemPrice}) added to cart!`, 'success');
+                
+                console.log('Item added to cart:', {
+                    name: item.name,
+                    price: itemPrice,
+                    quantity: quantity,
+                    productId: productId,
+                    unit: unit,
+                    image: itemImage
+                });
+            } catch (error) {
+                console.error('Error adding item to cart:', error);
+                showNotification('Failed to add item to cart', 'error');
+            }
+        }
+
+        function reorderAllItems(order) {
+            let itemCount = 0;
+            order.items.forEach(item => {
+                addToCart(item);
+                itemCount++;
+            });
+            showNotification(`${itemCount} items from order #${order.id} added to cart!`, 'success');
+        }
+
+        function showNotification(message, type = 'success') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg font-medium text-white shadow-lg transition-all transform translate-x-full`;
+            notification.className += type === 'success' ? ' bg-green-500' : ' bg-red-500';
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Event delegation for reorder buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.reorder-item-btn')) {
+                const button = e.target.closest('.reorder-item-btn');
+                const item = JSON.parse(button.dataset.item);
+                addToCart(item);
+            }
+            
+            if (e.target.closest('.reorder-all-btn')) {
+                const button = e.target.closest('.reorder-all-btn');
+                const order = JSON.parse(button.dataset.order);
+                reorderAllItems(order);
+            }
+        });
+
+        // Navigation between sections
+        const navMenuItems = document.querySelectorAll('.nav-menu-item');
+        const contentSections = document.querySelectorAll('.content-section');
+        
+        navMenuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const sectionName = item.dataset.section;
+                
+                // Hide all sections
+                contentSections.forEach(section => {
+                    section.classList.add('hidden');
+                });
+                
+                // Show selected section
+                const targetSection = document.getElementById(`${sectionName}-section`);
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
+                }
+                
+                // Load section-specific data
+                if (sectionName === 'addresses') {
+                    loadAddresses();
+                }
+                
+                // Update active state
+                navMenuItems.forEach(navItem => {
+                    navItem.classList.remove('bg-lime-50', 'dark:bg-lime-900/20');
+                });
+                item.classList.add('bg-lime-50', 'dark:bg-lime-900/20');
+            });
+        });
+
+        // Address Management
+        let addresses = [];
+        
+        function loadAddresses() {
+            // Use user-specific storage key
+            const addressesKey = getUserStorageKey('grocerymartAddresses');
+            const savedAddresses = localStorage.getItem(addressesKey);
+            if (savedAddresses) {
+                addresses = JSON.parse(savedAddresses);
+            }
+            // Don't create default addresses - let users add their own
+            
+            renderAddresses();
+        }
+        
+        function renderAddresses() {
+            const addressesContainer = document.getElementById('addresses-container');
+            
+            if (addresses.length === 0) {
+                addressesContainer.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📍</div>
+                        <p class="themed-subtle-text text-lg">No saved addresses yet</p>
+                        <p class="text-sm themed-subtle-text mt-2">Add an address to get started</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            addressesContainer.innerHTML = addresses.map(address => `
+                <div class="themed-bg border themed-border rounded-lg p-4 hover:shadow-md transition-all">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 rounded-full bg-lime-100 dark:bg-lime-900 flex items-center justify-center">
+                                <i class="ph ph-${address.label === 'Home' ? 'house' : address.label === 'Work' ? 'briefcase' : 'map-pin'} text-lime-600 dark:text-lime-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold themed-text">${address.label}</h4>
+                                ${address.isDefault ? '<span class="text-xs px-2 py-1 bg-lime-100 dark:bg-lime-900 text-lime-800 dark:text-lime-300 rounded-full">Default</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="edit-address-btn p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors" data-id="${address.id}">
+                                <i class="ph ph-pencil"></i>
+                            </button>
+                            <button class="delete-address-btn p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-colors text-red-600" data-id="${address.id}">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-sm themed-text mb-1">${address.line1}</p>
+                    <p class="text-sm themed-text mb-1">${address.line2}</p>
+                    <p class="text-sm themed-text mb-2">${address.city} - ${address.pincode}</p>
+                    <p class="text-sm themed-subtle-text"><i class="ph ph-phone"></i> ${address.phone}</p>
+                    ${!address.isDefault ? `
+                        <button class="set-default-btn mt-3 text-sm text-lime-600 dark:text-lime-400 hover:underline" data-id="${address.id}">
+                            Set as default
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+            
+            // Add event listeners
+            document.querySelectorAll('.delete-address-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteAddress(parseInt(btn.dataset.id)));
+            });
+            
+            document.querySelectorAll('.set-default-btn').forEach(btn => {
+                btn.addEventListener('click', () => setDefaultAddress(parseInt(btn.dataset.id)));
+            });
+        }
+        
+        function deleteAddress(id) {
+            if (confirm('Are you sure you want to delete this address?')) {
+                addresses = addresses.filter(addr => addr.id !== id);
+                const addressesKey = getUserStorageKey('grocerymartAddresses');
+                localStorage.setItem(addressesKey, JSON.stringify(addresses));
+                renderAddresses();
+                showNotification('Address deleted successfully', 'success');
+            }
+        }
+        
+        function setDefaultAddress(id) {
+            addresses = addresses.map(addr => ({
+                ...addr,
+                isDefault: addr.id === id
+            }));
+            const addressesKey = getUserStorageKey('grocerymartAddresses');
+            localStorage.setItem(addressesKey, JSON.stringify(addresses));
+            renderAddresses();
+            showNotification('Default address updated', 'success');
+        }
+
+        // Address Modal
+        const addAddressBtn = document.getElementById('add-address-btn');
+        const addAddressModal = document.getElementById('add-address-modal');
+        const closeAddressModal = document.getElementById('close-address-modal');
+        const cancelAddress = document.getElementById('cancel-address');
+        const addAddressForm = document.getElementById('add-address-form');
+        
+        addAddressBtn.addEventListener('click', () => {
+            addAddressModal.classList.remove('hidden');
+            addAddressModal.classList.add('flex');
+        });
+        
+        closeAddressModal.addEventListener('click', () => {
+            addAddressModal.classList.add('hidden');
+            addAddressModal.classList.remove('flex');
+        });
+        
+        cancelAddress.addEventListener('click', () => {
+            addAddressModal.classList.add('hidden');
+            addAddressModal.classList.remove('flex');
+        });
+        
+        addAddressForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const newAddress = {
+                id: Date.now(),
+                label: document.getElementById('address-label').value,
+                line1: document.getElementById('address-line1').value,
+                line2: document.getElementById('address-line2').value,
+                city: document.getElementById('address-city').value,
+                pincode: document.getElementById('address-pincode').value,
+                phone: document.getElementById('address-phone').value,
+                isDefault: addresses.length === 0
+            };
+            
+            addresses.push(newAddress);
+            const addressesKey = getUserStorageKey('grocerymartAddresses');
+            localStorage.setItem(addressesKey, JSON.stringify(addresses));
+            renderAddresses();
+            
+            addAddressForm.reset();
+            addAddressModal.classList.add('hidden');
+            addAddressModal.classList.remove('flex');
+            
+            showNotification('Address added successfully!', 'success');
+        });
+
+        // Copy Referral Code
+        const copyReferralBtn = document.getElementById('copy-referral-btn');
+        if (copyReferralBtn) {
+            copyReferralBtn.addEventListener('click', () => {
+                const referralCode = 'NIRAJ2025';
+                navigator.clipboard.writeText(referralCode).then(() => {
+                    showNotification('Referral code copied to clipboard!', 'success');
+                }).catch(() => {
+                    showNotification('Failed to copy referral code', 'error');
+                });
+            });
+        }
+
+        // Development helper function to reset order data (call from console: resetOrderData())
+        window.resetOrderData = function() {
+            localStorage.removeItem('grocerymartOrders');
+            loadOrderHistory();
+            showNotification('Order data has been reset with proper prices!', 'success');
+        };
+
+        // Initialize
+        updateProfileUI();
+        loadOrderHistory();
+        initializeClerk();
+    </script>
+</body>
+</html>
