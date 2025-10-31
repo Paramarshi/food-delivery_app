@@ -6,6 +6,11 @@
     <title>My Profile - Grocery Mart</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <!-- Google Fonts: Inter -->   
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,9 +32,12 @@
             --accent-color-1: #84cc16; /* lime-500 */
             --accent-color-2: #a3e635; /* lime-400 */
 
-            --bg-dark: #0a1122; /* dark blue */
+            /* Enhanced dark mode colors with better depth */
+            --bg-dark: #0f172a; /* slate-900 - richer dark background */
+            --bg-dark-secondary: #1e293b; /* slate-800 - for layered depth */
             --text-dark: #ecfccb; /* lime-100 */
             --card-bg-dark: #1e293b; /* slate-800 */
+            --card-bg-dark-elevated: #334155; /* slate-700 - for elevated cards */
             --border-dark: #334155; /* slate-700 */
             --subtle-text-dark: #94a3b8; /* slate-400 */
 
@@ -37,72 +45,115 @@
             --bg-image-light: url('https://www.transparenttextures.com/patterns/cubes.png');
             --bg-image-dark: url('https://www.transparenttextures.com/patterns/dark-matter.png');
             
-            /* Glassmorphism background variables */
+            /* Glassmorphism background variables with enhanced blur */
             --glass-bg-light: rgba(255, 255, 255, 0.85);
-            --glass-bg-dark: rgba(12, 26, 46, 0.7);
+            --glass-bg-dark: rgba(30, 41, 59, 0.75);
+            
+            /* Transition timing - optimized for smoothness */
+            --theme-transition-duration: 0.5s;
+            --theme-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Apply light theme by default */
+        /* Apply light theme by default with smooth transitions */
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-light);
             color: var(--text-light);
             background-image: var(--bg-image-light);
-            transition: background-image 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+            background-size: cover;
+            background-attachment: fixed;
+            transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+                        color var(--theme-transition-duration) var(--theme-transition-easing),
+                        background-image var(--theme-transition-duration) var(--theme-transition-easing);
         }
 
-        /* Dark mode */
-        .dark body {
-            background-color: var(--bg-dark);
+        /* Enhanced dark mode with gradient overlay */
+        html.dark body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            background-size: 200% 200%;
+            background-attachment: fixed;
             color: var(--text-dark);
             background-image: var(--bg-image-dark);
+            animation: gradientShift 15s ease infinite;
         }
 
-        /* Utility classes */
+        /* Subtle gradient animation for dark mode */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Utility classes with smooth transitions */
         .themed-bg {
             background-color: var(--card-bg-light);
+            transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+                        box-shadow var(--theme-transition-duration) var(--theme-transition-easing);
         }
-        .dark .themed-bg {
+        html.dark .themed-bg {
             background-color: var(--card-bg-dark);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
         }
+        
         .themed-text {
             color: var(--text-light);
+            transition: color var(--theme-transition-duration) var(--theme-transition-easing);
         }
-        .dark .themed-text {
+        html.dark .themed-text {
             color: var(--text-dark);
         }
+        
         .themed-subtle-text {
             color: var(--subtle-text-light);
+            transition: color var(--theme-transition-duration) var(--theme-transition-easing);
         }
-        .dark .themed-subtle-text {
+        html.dark .themed-subtle-text {
             color: var(--subtle-text-dark);
         }
+        
         .themed-border {
             border-color: var(--border-light);
+            transition: border-color var(--theme-transition-duration) var(--theme-transition-easing);
         }
-        .dark .themed-border {
+        html.dark .themed-border {
             border-color: var(--border-dark);
         }
+        
         .themed-card-bg {
             background-color: var(--card-bg-light);
+            transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+                        box-shadow var(--theme-transition-duration) var(--theme-transition-easing),
+                        transform var(--theme-transition-duration) var(--theme-transition-easing);
         }
-        .dark .themed-card-bg {
+        html.dark .themed-card-bg {
             background-color: var(--card-bg-dark);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+        }
+        html.dark .themed-card-bg:hover {
+            background-color: var(--card-bg-dark-elevated);
+            transform: translateY(-2px);
         }
 
-        /* Glass effect */
+        /* Enhanced glass effect with better blur and depth */
         .glass-effect {
             background-color: var(--glass-bg-light);
-            -webkit-backdrop-filter: blur(16px);
-            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            backdrop-filter: blur(16px) saturate(180%);
             border-color: rgba(255, 255, 255, 0.5);
+            transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+                        border-color var(--theme-transition-duration) var(--theme-transition-easing),
+                        backdrop-filter var(--theme-transition-duration) var(--theme-transition-easing),
+                        box-shadow var(--theme-transition-duration) var(--theme-transition-easing);
         }
-        .dark .glass-effect {
+        html.dark .glass-effect {
             background-color: var(--glass-bg-dark);
-            border-color: rgba(51, 65, 85, 0.5);
+            border-color: rgba(71, 85, 105, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: blur(20px) saturate(180%);
         }
 
-        /* Button styles */
+        /* Button styles with smooth transitions */
         .btn-primary {
             background-image: linear-gradient(45deg, var(--accent-color-1), var(--accent-color-2), var(--accent-color-1));
             background-size: 200% auto;
@@ -117,17 +168,541 @@
             box-shadow: 0 10px 15px -3px rgba(132, 204, 22, 0.2), 0 4px 6px -4px rgba(132, 204, 22, 0.1);
         }
 
-        /* Profile Tab styles */
+        /* Profile Tab styles with smooth transitions */
         .profile-tab {
             border-bottom: 2px solid transparent;
-            transition: all 0.3s ease;
+            transition: all var(--theme-transition-duration) var(--theme-transition-easing),
+                        border-color 0.3s ease,
+                        background-color 0.3s ease;
         }
         .profile-tab.active {
             border-bottom-color: var(--accent-color-1);
             color: var(--text-light);
         }
-        .dark .profile-tab.active {
+        html.dark .profile-tab.active {
             color: var(--text-dark);
+        }
+
+        /* Smooth transitions for all interactive elements */
+        button, a, input, select, textarea {
+            transition: all 0.3s ease,
+                        background-color var(--theme-transition-duration) var(--theme-transition-easing),
+                        color var(--theme-transition-duration) var(--theme-transition-easing),
+                        border-color var(--theme-transition-duration) var(--theme-transition-easing);
+        }
+
+        /* Navigation menu items smooth transitions */
+        .nav-menu-item {
+            position: relative;
+            transition: background-color 0.3s ease,
+                        transform 0.2s ease,
+                        box-shadow 0.3s ease,
+                        border-left 0.3s ease;
+        }
+        
+        /* Hover effect for nav items */
+        .nav-menu-item:hover:not(.active) {
+            transform: translateX(4px);
+            background-color: rgba(132, 204, 22, 0.05);
+        }
+        
+        html.dark .nav-menu-item:hover:not(.active) {
+            background-color: rgba(190, 242, 100, 0.08);
+        }
+        
+        /* Enhanced active state for nav menu items - Light Mode with vibrant effects */
+        .nav-menu-item.active {
+            background: linear-gradient(to right, rgba(132, 204, 22, 0.25), rgba(132, 204, 22, 0.08));
+            border-left: 4px solid #84cc16; /* lime-500 border */
+            box-shadow: inset 0 0 20px rgba(132, 204, 22, 0.15),
+                        0 2px 8px rgba(132, 204, 22, 0.2);
+        }
+        
+        .nav-menu-item.active > span {
+            color: #4d7c0f; /* lime-700 - deep vibrant green for excellent contrast */
+            font-weight: 700; /* bolder text */
+            text-shadow: 0 1px 2px rgba(132, 204, 22, 0.1);
+            transition: color 0.3s ease;
+        }
+        
+        .nav-menu-item.active > div {
+            background: linear-gradient(135deg, rgba(132, 204, 22, 0.3), rgba(163, 230, 53, 0.25)) !important;
+            border: 2px solid rgba(132, 204, 22, 0.4);
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(132, 204, 22, 0.25),
+                        inset 0 2px 4px rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-menu-item.active i {
+            color: #4d7c0f !important; /* lime-700 - deep vibrant green */
+            font-weight: 700;
+            filter: drop-shadow(0 2px 4px rgba(132, 204, 22, 0.3));
+            transition: color 0.3s ease, transform 0.3s ease;
+            transform: scale(1.2); /* larger icon for emphasis */
+        }
+        
+        /* Enhanced dark mode active state - Better green visibility with matching effects */
+        html.dark .nav-menu-item.active {
+            background: linear-gradient(to right, rgba(190, 242, 100, 0.25), rgba(190, 242, 100, 0.10));
+            border-left: 4px solid #bef264; /* lime-300 - brighter border for dark mode */
+            box-shadow: inset 0 0 20px rgba(190, 242, 100, 0.2),
+                        0 2px 8px rgba(190, 242, 100, 0.25);
+        }
+        
+        html.dark .nav-menu-item.active > span {
+            color: #bef264; /* lime-300 - excellent contrast in dark mode */
+            font-weight: 700;
+            text-shadow: 0 1px 4px rgba(190, 242, 100, 0.4);
+        }
+        
+        html.dark .nav-menu-item.active > div {
+            background: linear-gradient(135deg, rgba(190, 242, 100, 0.3), rgba(217, 249, 157, 0.25)) !important;
+            border: 2px solid rgba(190, 242, 100, 0.5);
+            box-shadow: 0 4px 12px rgba(190, 242, 100, 0.3),
+                        inset 0 2px 4px rgba(190, 242, 100, 0.2);
+        }
+        
+        html.dark .nav-menu-item.active i {
+            color: #d9f99d !important; /* lime-200 - even brighter for icons */
+            font-weight: 700;
+            filter: drop-shadow(0 2px 4px rgba(190, 242, 100, 0.5));
+            transform: scale(1.2);
+        }
+
+        /* Icon transitions */
+        i {
+            transition: color var(--theme-transition-duration) var(--theme-transition-easing),
+                        transform 0.3s ease;
+        }
+
+        /* Theme toggle button - subtle, no highlight effects */
+        #theme-toggle {
+            transition: opacity 0.2s ease;
+        }
+        #theme-toggle:hover {
+            opacity: 0.8;
+        }
+        #theme-toggle:focus {
+            outline: none;
+        }
+
+        /* Card hover effects with smooth transitions */
+        .themed-card-bg:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+        }
+        
+        html.dark .themed-card-bg:hover {
+            box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.5),
+                        0 4px 12px rgba(190, 242, 100, 0.15);
+        }
+
+        /* Enhanced Avatar styling for dark mode */
+        #profile-avatar {
+            transition: transform 0.3s ease,
+                        box-shadow 0.3s ease,
+                        border-color var(--theme-transition-duration) var(--theme-transition-easing);
+        }
+        #profile-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(132, 204, 22, 0.3);
+        }
+        
+        html.dark #profile-avatar {
+            border-color: #bef264;
+            box-shadow: 0 0 20px rgba(190, 242, 100, 0.3);
+        }
+        
+        html.dark #profile-avatar:hover {
+            box-shadow: 0 0 30px rgba(190, 242, 100, 0.5),
+                        0 8px 16px rgba(190, 242, 100, 0.3);
+        }
+
+        /* Enhanced profile name in dark mode */
+        html.dark #profile-name {
+            color: #ecfccb;
+            text-shadow: 0 2px 8px rgba(190, 242, 100, 0.2);
+        }
+
+        /* Badge styling enhancement for dark mode */
+        .px-3.py-1.rounded-full {
+            transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+                        color var(--theme-transition-duration) var(--theme-transition-easing),
+                        box-shadow 0.3s ease;
+        }
+        
+        html.dark .bg-purple-100 {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(147, 51, 234, 0.2)) !important;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3),
+                        inset 0 2px 4px rgba(168, 85, 247, 0.2);
+        }
+
+        /* Membership info card enhancement */
+        html.dark .bg-gradient-to-r.from-lime-50 {
+            background: linear-gradient(to right, rgba(190, 242, 100, 0.15), rgba(134, 239, 172, 0.15)) !important;
+            border: 1px solid rgba(190, 242, 100, 0.3);
+            box-shadow: inset 0 2px 8px rgba(190, 242, 100, 0.1);
+        }
+
+        /* Wallet section enhancement */
+        html.dark .bg-purple-100.dark\:bg-purple-900 {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(147, 51, 234, 0.2)) !important;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+        }
+
+        /* Free cash banner enhancement */
+        html.dark .bg-gradient-to-r.from-purple-50 {
+            background: linear-gradient(to right, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2)) !important;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+        }
+
+        /* Modal transitions */
+        .fixed.inset-0 {
+            transition: opacity 0.3s ease,
+                        background-color var(--theme-transition-duration) var(--theme-transition-easing);
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Enhanced header title in dark mode */
+        html.dark h1 {
+            color: #ecfccb;
+            text-shadow: 0 2px 8px rgba(190, 242, 100, 0.2);
+        }
+        
+        /* Enhanced back button in dark mode */
+        html.dark .ph-arrow-left {
+            filter: drop-shadow(0 2px 4px rgba(190, 242, 100, 0.4));
+        }
+
+        /* Order cards smooth transitions with enhanced dark mode */
+        .themed-bg.border.themed-border.rounded-lg {
+            transition: transform 0.2s ease,
+                        box-shadow 0.3s ease,
+                        background-color var(--theme-transition-duration) var(--theme-transition-easing),
+                        border-color var(--theme-transition-duration) var(--theme-transition-easing);
+        }
+        
+        html.dark .themed-bg.border.themed-border.rounded-lg:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4),
+                        0 2px 8px rgba(190, 242, 100, 0.2);
+            border-color: rgba(190, 242, 100, 0.3);
+        }
+        
+        /* Enhanced button styling in dark mode */
+        html.dark .btn-primary {
+            box-shadow: 0 4px 12px rgba(132, 204, 22, 0.4),
+                        0 2px 6px rgba(163, 230, 53, 0.3);
+        }
+        
+        html.dark .btn-primary:hover {
+            box-shadow: 0 8px 20px rgba(132, 204, 22, 0.5),
+                        0 4px 12px rgba(163, 230, 53, 0.4);
+        }
+        
+        /* Enhanced input fields in dark mode */
+        html.dark input[type="text"],
+        html.dark input[type="email"],
+        html.dark input[type="tel"],
+        html.dark textarea,
+        html.dark select {
+            background-color: rgba(30, 41, 59, 0.8);
+            border-color: rgba(190, 242, 100, 0.2);
+            color: #ecfccb;
+        }
+        
+        html.dark input:focus,
+        html.dark textarea:focus,
+        html.dark select:focus {
+            border-color: #bef264;
+            box-shadow: 0 0 0 3px rgba(190, 242, 100, 0.2),
+                        0 4px 12px rgba(190, 242, 100, 0.3);
+            outline: none;
+        }
+        
+        /* Enhanced text colors in dark mode */
+        html.dark h2,
+        html.dark h3 {
+            color: #ecfccb;
+            text-shadow: 0 1px 4px rgba(190, 242, 100, 0.15);
+        }
+        
+        /* Logout button enhancement in dark mode */
+        html.dark #logout-btn {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+            border-color: rgba(248, 113, 113, 0.3);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        html.dark #logout-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.2));
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+        }
+
+        /* ============================================ */
+        /* MOBILE RESPONSIVE ENHANCEMENTS */
+        /* ============================================ */
+        
+        /* Mobile: Small devices (phones, 640px and down) */
+        @media (max-width: 640px) {
+            /* Reduce padding and margins for mobile */
+            body {
+                padding-bottom: 80px;
+            }
+            
+            /* Header adjustments */
+            header h1 {
+                font-size: 1.5rem !important;
+            }
+            
+            /* Profile avatar smaller on mobile */
+            #profile-avatar {
+                width: 64px !important;
+                height: 64px !important;
+            }
+            
+            html.dark #profile-avatar {
+                box-shadow: 0 0 15px rgba(190, 242, 100, 0.25);
+            }
+            
+            /* Reduce card padding on mobile */
+            .themed-card-bg {
+                padding: 1rem !important;
+            }
+            
+            /* Mobile nav menu items - reduce padding */
+            .nav-menu-item {
+                padding: 0.75rem !important;
+                font-size: 0.9rem;
+            }
+            
+            .nav-menu-item > div {
+                width: 36px !important;
+                height: 36px !important;
+            }
+            
+            .nav-menu-item i {
+                font-size: 1.25rem !important;
+            }
+            
+            /* Active nav items - reduced effects on mobile */
+            .nav-menu-item.active {
+                background: linear-gradient(to right, rgba(132, 204, 22, 0.2), rgba(132, 204, 22, 0.06));
+                border-left-width: 3px;
+            }
+            
+            html.dark .nav-menu-item.active {
+                background: linear-gradient(to right, rgba(190, 242, 100, 0.2), rgba(190, 242, 100, 0.08));
+            }
+            
+            /* Mobile button sizing */
+            .btn-primary {
+                padding: 0.75rem 1.5rem !important;
+                font-size: 0.9rem;
+            }
+            
+            /* Mobile theme toggle */
+            #theme-toggle i {
+                font-size: 1.75rem !important;
+            }
+            
+            /* Reduce shadow effects on mobile for performance */
+            html.dark .themed-card-bg:hover {
+                box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.4),
+                            0 2px 6px rgba(190, 242, 100, 0.1);
+            }
+            
+            /* Mobile input fields */
+            input, textarea, select {
+                font-size: 16px !important; /* Prevents zoom on iOS */
+            }
+            
+            html.dark input:focus,
+            html.dark textarea:focus,
+            html.dark select:focus {
+                box-shadow: 0 0 0 2px rgba(190, 242, 100, 0.15),
+                            0 2px 8px rgba(190, 242, 100, 0.2);
+            }
+            
+            /* Mobile glass effect - reduce blur for performance */
+            .glass-effect {
+                -webkit-backdrop-filter: blur(10px) saturate(150%);
+                backdrop-filter: blur(10px) saturate(150%);
+            }
+            
+            html.dark .glass-effect {
+                -webkit-backdrop-filter: blur(12px) saturate(150%);
+                backdrop-filter: blur(12px) saturate(150%);
+            }
+            
+            /* Mobile gradient animation - slower for battery */
+            @keyframes gradientShift {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            
+            html.dark body {
+                animation: gradientShift 20s ease infinite; /* Slower on mobile */
+            }
+            
+            /* Mobile hover states - tap friendly */
+            .nav-menu-item:hover:not(.active) {
+                transform: translateX(2px); /* Reduced movement */
+            }
+            
+            /* Mobile badges */
+            .px-3.py-1.rounded-full {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.75rem !important;
+            }
+        }
+        
+        /* Mobile: Extra small devices (320px and down) */
+        @media (max-width: 380px) {
+            header h1 {
+                font-size: 1.25rem !important;
+            }
+            
+            #profile-avatar {
+                width: 56px !important;
+                height: 56px !important;
+            }
+            
+            .nav-menu-item {
+                padding: 0.625rem !important;
+                font-size: 0.85rem;
+            }
+            
+            .nav-menu-item > div {
+                width: 32px !important;
+                height: 32px !important;
+            }
+            
+            /* Further reduce effects on very small screens */
+            html.dark #profile-avatar {
+                box-shadow: 0 0 10px rgba(190, 242, 100, 0.2);
+            }
+            
+            .nav-menu-item.active > div {
+                transform: scale(1.03); /* Reduced scale */
+            }
+            
+            .nav-menu-item.active i {
+                transform: scale(1.1); /* Reduced scale */
+            }
+        }
+        
+        /* Tablet: Medium devices (641px to 1024px) */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            /* Optimize for tablets */
+            .themed-card-bg {
+                padding: 1.25rem;
+            }
+            
+            .nav-menu-item {
+                padding: 0.875rem 1rem;
+            }
+            
+            /* Tablet-optimized effects */
+            html.dark .themed-card-bg:hover {
+                box-shadow: 0 10px 20px -4px rgba(0, 0, 0, 0.45),
+                            0 3px 10px rgba(190, 242, 100, 0.12);
+            }
+            
+            /* Tablet glass effect */
+            .glass-effect {
+                -webkit-backdrop-filter: blur(14px) saturate(170%);
+                backdrop-filter: blur(14px) saturate(170%);
+            }
+            
+            html.dark .glass-effect {
+                -webkit-backdrop-filter: blur(16px) saturate(170%);
+                backdrop-filter: blur(16px) saturate(170%);
+            }
+        }
+        
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            /* Remove hover effects on touch devices */
+            .themed-card-bg:hover {
+                transform: none;
+            }
+            
+            .nav-menu-item:hover:not(.active) {
+                transform: none;
+                background-color: transparent;
+            }
+            
+            /* Make tap targets larger */
+            .nav-menu-item {
+                min-height: 48px; /* Minimum touch target size */
+            }
+            
+            button {
+                min-height: 44px; /* iOS recommended size */
+            }
+            
+            /* Enhance active states for touch */
+            .nav-menu-item:active {
+                opacity: 0.8;
+            }
+            
+            html.dark .nav-menu-item:active {
+                background: linear-gradient(to right, rgba(190, 242, 100, 0.3), rgba(190, 242, 100, 0.12));
+            }
+        }
+        
+        /* Landscape mobile optimizations */
+        @media (max-width: 900px) and (orientation: landscape) {
+            body {
+                padding-bottom: 60px;
+            }
+            
+            header {
+                padding-top: 0.75rem !important;
+                padding-bottom: 0.75rem !important;
+            }
+            
+            .themed-card-bg {
+                padding: 0.875rem !important;
+            }
+        }
+        
+        /* High DPI screens - sharper effects */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            /* Enhance visual quality on retina displays */
+            html.dark #profile-avatar {
+                box-shadow: 0 0 20px rgba(190, 242, 100, 0.35);
+            }
+            
+            html.dark .nav-menu-item.active {
+                box-shadow: inset 0 0 24px rgba(190, 242, 100, 0.22),
+                            0 2px 10px rgba(190, 242, 100, 0.28);
+            }
+        }
+        
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            html.dark body {
+                animation: none;
+            }
+            
+            .nav-menu-item:hover:not(.active),
+            .themed-card-bg:hover {
+                transform: none;
+            }
         }
     </style>
 </head>
@@ -141,9 +716,9 @@
                 </button>
                 <h1 class="text-2xl sm:text-3xl font-bold">My Profile</h1>
             </div>
-            <button id="theme-toggle" class="p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-color-1)] transition-all transform hover:scale-110" title="Toggle theme">
-                <i id="sun-icon" class="ph ph-sun text-3xl"></i>
-                <i id="moon-icon" class="ph ph-moon text-3xl hidden"></i>
+            <button id="theme-toggle" class="p-2 rounded-lg transition-all" title="Toggle theme">
+                <i id="sun-icon" class="ph ph-sun text-3xl text-[#84cc16]"></i>
+                <i id="moon-icon" class="ph ph-moon text-3xl text-[#84cc16] hidden"></i>
             </button>
         </header>
 
@@ -775,12 +1350,12 @@
             });
         }
 
-        // Get user-specific storage key
+        // Get user-specific storage key for data isolation
         function getUserStorageKey(baseKey) {
             if (currentUser && currentUser.id) {
                 return `${baseKey}_${currentUser.id}`;
             }
-            return baseKey; // Fallback to non-user-specific key for guests
+            return baseKey; // Guest users use non-specific key
         }
 
         // Profile data
@@ -789,25 +1364,31 @@
             email: 'guest.user@email.com'
         };
 
-        // Load profile from localStorage with user-specific key
+        // Load user profile from localStorage or Clerk
         function loadUserProfile() {
             const profileKey = getUserStorageKey('grocerymartProfile');
             const savedProfile = localStorage.getItem(profileKey);
-            if (savedProfile) {
-                const parsed = JSON.parse(savedProfile);
-                userProfile = { ...userProfile, ...parsed };
-            } else if (currentUser) {
-                // If logged in but no profile, use Clerk data
+            
+            if (currentUser) {
+                // Authenticated user - use Clerk data as primary source
                 userProfile = {
-                    name: currentUser.fullName || currentUser.firstName || 'User',
-                    email: currentUser.primaryEmailAddress?.emailAddress || 'user@email.com'
+                    name: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || 'User',
+                    email: currentUser.primaryEmailAddress?.emailAddress || currentUser.emailAddresses?.[0]?.emailAddress || 'user@email.com'
                 };
-                // Save initial profile
+                // Merge with saved preferences if they exist
+                if (savedProfile) {
+                    const parsed = JSON.parse(savedProfile);
+                    userProfile = { ...userProfile, ...parsed };
+                }
+                // Save current profile
                 localStorage.setItem(profileKey, JSON.stringify(userProfile));
+            } else if (savedProfile) {
+                // Guest user with saved profile
+                userProfile = JSON.parse(savedProfile);
             }
         }
 
-        // Initial load for guest users
+        // Initial load
         loadUserProfile();
 
         // Elements
@@ -824,33 +1405,33 @@
         const logoutBtn = document.getElementById('logout-btn');
         const orderHistoryContainer = document.getElementById('order-history-container');
 
-        // Theme toggle
+        // Theme toggle - simplified and smooth with consistent icon colors
         const themeToggleBtn = document.getElementById('theme-toggle');
         const sunIcon = document.getElementById('sun-icon');
         const moonIcon = document.getElementById('moon-icon');
         const htmlEl = document.documentElement;
 
-        const updateIconColors = (isDarkMode) => {
-            const lightColor = '#14532d';
-            const darkColor = '#bef264';
-            const color = isDarkMode ? darkColor : lightColor;
-            
-            sunIcon.style.color = color;
-            moonIcon.style.color = color;
-        };
-
         const toggleTheme = () => {
+            // Toggle dark mode immediately
             htmlEl.classList.toggle('dark');
             const isDarkMode = htmlEl.classList.contains('dark');
-            sunIcon.classList.toggle('hidden', isDarkMode);
-            moonIcon.classList.toggle('hidden', !isDarkMode);
-            updateIconColors(isDarkMode);
+            
+            // Simple instant icon swap
+            if (isDarkMode) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                moonIcon.classList.add('hidden');
+                sunIcon.classList.remove('hidden');
+            }
+            
             localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
         };
 
         // Initialize theme
         const savedTheme = localStorage.getItem('theme');
-        const isDarkMode = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDarkMode = savedTheme === 'dark' || (!savedTheme && prefersDark);
         
         if (isDarkMode) {
             htmlEl.classList.add('dark');
@@ -858,8 +1439,9 @@
             moonIcon.classList.remove('hidden');
         }
         
-        updateIconColors(isDarkMode);
-        themeToggleBtn.addEventListener('click', toggleTheme);
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', toggleTheme);
+        }
 
         // Tab switching
         const profileTabs = document.querySelectorAll('.profile-tab');
@@ -878,26 +1460,46 @@
             });
         });
 
-        // Update profile UI
+        // Update profile UI with current user data
         function updateProfileUI() {
+            // Reload profile data to ensure sync with Clerk
             if (currentUser) {
-                userProfile.name = `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim();
-                userProfile.email = currentUser.emailAddresses?.[0]?.emailAddress || userProfile.email;
+                loadUserProfile();
             }
 
-            // Update all name and email elements
-            const nameElements = [profileName, document.getElementById('profile-name-display')];
+            // Update all name displays
+            const nameElements = [
+                profileName, 
+                document.getElementById('profile-name-display')
+            ];
             nameElements.forEach(el => {
-                if (el) el.textContent = userProfile.name;
+                if (el) el.textContent = userProfile.name || 'Guest User';
             });
 
-            const emailElements = [profileEmail, profileEmailDisplay];
+            // Update all email displays
+            const emailElements = [
+                profileEmail, 
+                profileEmailDisplay
+            ];
             emailElements.forEach(el => {
-                if (el) el.textContent = userProfile.email;
+                if (el) el.textContent = userProfile.email || 'guest@email.com';
             });
 
-            const initial = userProfile.name.charAt(0).toUpperCase();
-            if (profileAvatar) profileAvatar.src = `https://placehold.co/128x128/a3e635/1a2e05?text=${initial}`;
+            // Update avatar with user initial
+            const initial = (userProfile.name || 'G').charAt(0).toUpperCase();
+            if (profileAvatar) {
+                profileAvatar.src = `https://placehold.co/128x128/a3e635/1a2e05?text=${initial}`;
+                profileAvatar.alt = `${userProfile.name} Avatar`;
+            }
+
+            // Update member ID display
+            const memberIdDisplay = document.getElementById('profile-member-id-display');
+            const memberId = document.getElementById('profile-member-id');
+            const userId = currentUser?.id || 'GUEST';
+            const displayId = userId.slice(0, 10).toUpperCase();
+            
+            if (memberIdDisplay) memberIdDisplay.textContent = displayId;
+            if (memberId) memberId.textContent = displayId;
         }
 
         // Edit profile - modal opener
@@ -934,121 +1536,126 @@
             editProfileModal.classList.remove('flex');
         });
 
-        // Load order history
+        // Load order history with user-specific data
         function loadOrderHistory() {
-            // Use user-specific storage key
             const ordersKey = getUserStorageKey('grocerymartOrders');
             const savedOrders = localStorage.getItem(ordersKey);
             let orders = [];
 
             if (savedOrders) {
-                orders = JSON.parse(savedOrders);
-                
-                // Data migration: Ensure all orders have proper price data
-                orders = orders.map(order => {
-                    if (order.items) {
+                try {
+                    orders = JSON.parse(savedOrders);
+                    
+                    // Validate and fix order data
+                    orders = orders.map(order => {
+                        // Ensure items array exists
+                        if (!order.items || !Array.isArray(order.items)) {
+                            order.items = [];
+                        }
+                        
+                        // Fix each item in the order
                         order.items = order.items.map(item => {
-                            // If item doesn't have a price, assign a default based on item name or use 50
-                            if (!item.price || item.price === 0) {
-                                // Default prices for common items
-                                const defaultPrices = {
-                                    'Fresh Apples': 80,
-                                    'Ripe Bananas': 45,
-                                    'Whole Wheat Bread': 35,
-                                    'Free-Range Eggs': 80,
-                                    'Fresh Milk': 45,
-                                    'Mangoes': 120,
-                                    'Pineapple': 60,
-                                    'Ginger (Adrak)': 25
-                                };
-                                item.price = defaultPrices[item.name] || 50;
-                            }
-                            
-                            // Ensure quantity exists
-                            if (!item.quantity) {
-                                item.quantity = 1;
-                            }
-                            
-                            // Ensure productId exists - generate consistent IDs
-                            if (!item.productId) {
-                                item.productId = `reorder-${item.name.replace(/\s+/g, '-').toLowerCase()}-${item.unit.replace(/\s+/g, '-').toLowerCase()}`;
-                            }
-                            
-                            // Ensure image exists
-                            if (!item.image) {
-                                item.image = '📦';
-                            }
-                            
-                            return item;
+                            // Ensure all required fields exist
+                            return {
+                                name: item.name || 'Unknown Item',
+                                unit: item.unit || 'piece',
+                                price: parseFloat(item.price) || 50,
+                                quantity: parseInt(item.quantity) || 1,
+                                productId: item.productId || `reorder-${(item.name || 'item').replace(/\s+/g, '-').toLowerCase()}-${(item.unit || 'piece').replace(/\s+/g, '-').toLowerCase()}`,
+                                image: item.image || '📦'
+                            };
                         });
                         
-                        // Recalculate order total from items to ensure accuracy
+                        // Recalculate order total from items
                         order.total = order.items.reduce((sum, item) => {
-                            const itemPrice = parseFloat(item.price) || 0;
-                            const itemQty = parseInt(item.quantity) || 1;
-                            return sum + (itemPrice * itemQty);
+                            return sum + (item.price * item.quantity);
                         }, 0);
-                    }
-                    return order;
-                });
-                
-                // Save the migrated data back to localStorage with user-specific key
-                localStorage.setItem(ordersKey, JSON.stringify(orders));
+                        
+                        // Ensure other order fields
+                        order.id = order.id || `GM${Math.floor(Math.random() * 10000)}`;
+                        order.date = order.date || new Date().toISOString();
+                        order.status = order.status || 'delivered';
+                        
+                        return order;
+                    });
+                    
+                    // Save cleaned data back
+                    localStorage.setItem(ordersKey, JSON.stringify(orders));
+                } catch (error) {
+                    console.error('Error parsing orders:', error);
+                    orders = [];
+                }
             }
-            // Don't create default orders - let users build their own order history
 
+            // Display orders or empty state
             if (orders.length === 0) {
-                orderHistoryContainer.innerHTML = `
-                    <div class="text-center py-12">
-                        <div class="text-6xl mb-4">📦</div>
-                        <p class="themed-text text-lg font-semibold mb-2">No orders yet</p>
-                        <p class="themed-subtle-text">Start shopping to see your order history here!</p>
-                        <a href="./index.html" class="inline-block mt-4 btn-primary px-6 py-3 rounded-lg">
-                            <i class="ph ph-shopping-cart"></i> Start Shopping
-                        </a>
-                    </div>
-                `;
-                // Update stats with zero values
-                document.getElementById('total-orders').textContent = '0';
-                document.getElementById('total-spent').textContent = '0.00';
-                document.getElementById('avg-order').textContent = '0.00';
-                document.getElementById('saved-money').textContent = '0.00';
+                renderEmptyOrders();
+                updateStats([]);
                 return;
             }
 
+            renderOrders(orders);
+            updateStats(orders);
+        }
+
+        // Render empty orders state
+        function renderEmptyOrders() {
+            orderHistoryContainer.innerHTML = `
+                <div class="text-center py-16">
+                    <div class="text-7xl mb-4">�</div>
+                    <h3 class="text-xl font-bold themed-text mb-2">No orders yet</h3>
+                    <p class="themed-subtle-text mb-6">Start shopping to see your order history here!</p>
+                    <a href="./index.html" class="inline-flex items-center gap-2 btn-primary px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform">
+                        <i class="ph ph-shopping-cart text-xl"></i>
+                        Start Shopping
+                    </a>
+                </div>
+            `;
+        }
+
+        // Render orders list
+        function renderOrders(orders) {
             orderHistoryContainer.innerHTML = '';
+            
             orders.forEach(order => {
                 const orderElement = document.createElement('div');
-                orderElement.className = 'themed-bg border themed-border rounded-lg p-4 hover:shadow-md transition-shadow';
+                orderElement.className = 'themed-bg border themed-border rounded-lg p-4 hover:shadow-lg transition-all duration-200';
                 
-                const itemsHtml = order.items.map(item => {
-                    // Ensure we have valid numbers for price and quantity
-                    const price = parseFloat(item.price) || 0;
-                    const quantity = parseInt(item.quantity) || 1;
-                    const total = (price * quantity).toFixed(2);
-                    
-                    // Debug logging
-                    console.log(`Item: ${item.name}, Price: ${item.price}, Parsed Price: ${price}, Quantity: ${quantity}, Total: ${total}`);
-                    
-                    return `
+                // Generate items HTML
+                const itemsHtml = order.items.map(item => `
                     <div class="flex items-center justify-between py-2 border-b themed-border last:border-b-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">${item.image || '📦'}</span>
-                            <div>
-                                <p class="font-medium text-sm themed-text">${item.name || 'Unknown Item'}</p>
-                                <p class="text-xs themed-subtle-text">${item.unit || 'piece'} × ${quantity}</p>
+                        <div class="flex items-center gap-3 flex-1">
+                            <span class="text-2xl">${item.image}</span>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm themed-text">${item.name}</p>
+                                <p class="text-xs themed-subtle-text">${item.unit} × ${item.quantity}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="font-semibold text-sm themed-text">₹${total}</span>
+                            <span class="font-semibold text-sm themed-text">₹${(item.price * item.quantity).toFixed(2)}</span>
                             <button class="reorder-item-btn bg-[color:var(--accent-color-1)] text-[#1a2e05] px-3 py-1 rounded-lg text-xs font-medium hover:bg-[color:var(--accent-color-2)] transition-colors" 
                                     data-item='${JSON.stringify(item)}'>
-                                <i class="ph ph-shopping-cart"></i> Reorder
+                                <i class="ph ph-shopping-cart"></i> Add
                             </button>
                         </div>
                     </div>
-                    `;
-                }).join('');
+                `).join('');
+                
+                // Format date
+                const orderDate = new Date(order.date);
+                const formattedDate = orderDate.toLocaleDateString('en-IN', { 
+                    day: 'numeric', 
+                    month: 'short', 
+                    year: 'numeric' 
+                });
+                
+                // Status badge styling
+                const statusClass = {
+                    delivered: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+                    processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+                    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+                    cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                }[order.status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
                 
                 orderElement.innerHTML = `
                     <div class="flex justify-between items-start mb-3">
@@ -1059,206 +1666,219 @@
                             <div>
                                 <h4 class="font-bold themed-text">Order #${order.id}</h4>
                                 <p class="text-sm themed-subtle-text">
-                                    <i class="ph ph-calendar-blank"></i> ${new Date(order.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    <i class="ph ph-calendar-blank"></i> ${formattedDate}
                                 </p>
                             </div>
                         </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-                            order.status === 'delivered' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
-                            order.status === 'processing' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
-                        }">
-                            ${order.status || 'delivered'}
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold capitalize ${statusClass}">
+                            ${order.status}
                         </span>
                     </div>
                     
                     <div class="mb-4">
-                        <h5 class="font-medium text-sm mb-2 themed-subtle-text">Items Ordered:</h5>
+                        <h5 class="font-medium text-sm mb-2 themed-subtle-text">Items (${order.items.length}):</h5>
                         <div class="space-y-1">
                             ${itemsHtml}
                         </div>
                     </div>
                     
                     <div class="flex justify-between items-center pt-3 border-t themed-border">
-                        <button class="reorder-all-btn text-[color:var(--accent-color-1)] hover:underline text-sm font-medium" 
+                        <button class="reorder-all-btn text-[color:var(--accent-color-1)] hover:underline text-sm font-medium flex items-center gap-1" 
                                 data-order='${JSON.stringify(order)}'>
-                            <i class="ph ph-arrow-clockwise"></i> Reorder All Items
+                            <i class="ph ph-arrow-clockwise"></i> Reorder All
                         </button>
                         <p class="font-bold text-lg themed-text">₹${order.total.toFixed(2)}</p>
                     </div>
                 `;
+                
                 orderHistoryContainer.appendChild(orderElement);
             });
-
-            // Update stats
-            updateStats(orders);
         }
 
-        // Update profile stats
+        // Update profile stats based on order history
         function updateStats(orders) {
             const totalOrders = orders.length;
-            const totalSpent = orders.reduce((sum, order) => sum + order.total, 0);
+            const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
             const avgOrder = totalOrders > 0 ? totalSpent / totalOrders : 0;
-            const savedMoney = totalSpent * 0.15; // Assume 15% savings
+            const savedMoney = totalSpent * 0.12; // Estimated 12% savings from offers
 
-            document.getElementById('total-orders').textContent = totalOrders;
-            document.getElementById('total-spent').textContent = totalSpent.toFixed(2);
-            document.getElementById('avg-order').textContent = avgOrder.toFixed(2);
-            document.getElementById('saved-money').textContent = savedMoney.toFixed(2);
+            // Update stat displays
+            const statsElements = {
+                'total-orders': totalOrders,
+                'total-spent': totalSpent.toFixed(2),
+                'avg-order': avgOrder.toFixed(2),
+                'saved-money': savedMoney.toFixed(2)
+            };
+
+            Object.entries(statsElements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            });
         }
 
-        // Logout
+        // Handle user logout
         logoutBtn.addEventListener('click', async () => {
-            if (clerk && currentUser) {
-                await clerk.signOut();
+            try {
+                if (clerk && currentUser) {
+                    await clerk.signOut();
+                }
+                
+                // Clear current user data
                 isSignedIn = false;
                 currentUser = null;
+                
+                // Reset to guest profile
+                userProfile = {
+                    name: 'Guest User',
+                    email: 'guest.user@email.com'
+                };
+                
+                // Show notification
+                showNotification('Logged out successfully', 'success');
+                
+                // Reload page to clear user-specific data
+                setTimeout(() => location.reload(), 500);
+            } catch (error) {
+                console.error('Logout error:', error);
+                showNotification('Logout failed. Please try again.', 'error');
             }
-            
-            // Don't remove global profile, just reload for guest
-            // Show sign-in prompt instead of redirecting
-            showSignInPrompt();
-            
-            // Reset to guest user data
-            userProfile = {
-                name: 'Guest User',
-                email: 'guest.user@email.com'
-            };
-            
-            // Reload the page to clear user-specific data
-            location.reload();
         });
 
-        // Reorder functionality
+        // Add item to cart (reorder functionality)
         function addToCart(item) {
             try {
-                // Get existing cart from localStorage
-                let cart = localStorage.getItem('grocerymartCart');
-                cart = cart ? JSON.parse(cart) : [];
-                
-                // Validate item data and provide defaults
+                // Validate item
                 if (!item || !item.name) {
                     showNotification('Invalid item data', 'error');
                     return;
                 }
                 
-                // Ensure we have proper price - use the item's actual price
-                let itemPrice = parseFloat(item.price);
-                if (!itemPrice || itemPrice === 0 || isNaN(itemPrice)) {
-                    // Default prices for common items as fallback
-                    const defaultPrices = {
-                        'Fresh Apples': 80,
-                        'Ripe Bananas': 45,
-                        'Whole Wheat Bread': 35,
-                        'Free-Range Eggs': 80,
-                        'Fresh Milk': 45,
-                        'Mangoes': 120,
-                        'Pineapple': 60,
-                        'Ginger (Adrak)': 25
-                    };
-                    itemPrice = defaultPrices[item.name] || 50;
-                }
+                // Get existing cart
+                let cart = JSON.parse(localStorage.getItem('grocerymartCart') || '[]');
                 
-                // Generate consistent productId based on item name and unit
-                // This ensures the same item always has the same ID
-                const productId = item.productId || `reorder-${item.name.replace(/\s+/g, '-').toLowerCase()}-${item.unit.replace(/\s+/g, '-').toLowerCase()}`;
-                const unit = item.unit || 'piece';
+                // Ensure valid price
+                const itemPrice = parseFloat(item.price) || 50;
                 const quantity = parseInt(item.quantity) || 1;
-                const itemImage = item.image || '🛒';
+                const unit = item.unit || 'piece';
                 
-                // Check if item already exists in cart by productId and unit
-                const existingItemIndex = cart.findIndex(cartItem => 
+                // Generate consistent product ID
+                const productId = item.productId || 
+                    `reorder-${item.name.replace(/\s+/g, '-').toLowerCase()}-${unit.replace(/\s+/g, '-').toLowerCase()}`;
+                
+                // Check if item already exists in cart
+                const existingIndex = cart.findIndex(cartItem => 
                     cartItem.productId === productId && cartItem.unit === unit
                 );
                 
-                if (existingItemIndex > -1) {
-                    // If item exists, increase quantity and ensure price is correct
-                    cart[existingItemIndex].quantity += quantity;
-                    cart[existingItemIndex].price = itemPrice; // Update price to ensure consistency
-                    cart[existingItemIndex].image = itemImage; // Update image
-                    cart[existingItemIndex].name = item.name; // Ensure name is consistent
+                if (existingIndex > -1) {
+                    // Update existing item
+                    cart[existingIndex].quantity += quantity;
+                    cart[existingIndex].price = itemPrice;
                 } else {
-                    // If item doesn't exist, add new item with the structure expected by main app
+                    // Add new item to cart
                     cart.push({
                         productId: productId,
+                        name: item.name,
                         unit: unit,
                         quantity: quantity,
                         price: itemPrice,
-                        name: item.name,
-                        image: itemImage
+                        image: item.image || '🛒'
                     });
                 }
                 
-                // Save updated cart to localStorage
+                // Save cart
                 localStorage.setItem('grocerymartCart', JSON.stringify(cart));
                 
-                // Show confirmation message with price
-                showNotification(`${item.name} (₹${itemPrice}) added to cart!`, 'success');
+                // Show success notification
+                showNotification(`${item.name} added to cart!`, 'success');
                 
-                console.log('Item added to cart:', {
-                    name: item.name,
-                    price: itemPrice,
-                    quantity: quantity,
-                    productId: productId,
-                    unit: unit,
-                    image: itemImage
-                });
             } catch (error) {
-                console.error('Error adding item to cart:', error);
+                console.error('Add to cart error:', error);
                 showNotification('Failed to add item to cart', 'error');
             }
         }
 
+        // Reorder all items from an order
         function reorderAllItems(order) {
-            let itemCount = 0;
-            order.items.forEach(item => {
-                addToCart(item);
-                itemCount++;
-            });
-            showNotification(`${itemCount} items from order #${order.id} added to cart!`, 'success');
+            try {
+                if (!order || !order.items || order.items.length === 0) {
+                    showNotification('No items to reorder', 'warning');
+                    return;
+                }
+                
+                let itemCount = 0;
+                order.items.forEach(item => {
+                    addToCart(item);
+                    itemCount++;
+                });
+                
+                showNotification(`${itemCount} items from Order #${order.id} added to cart!`, 'success');
+            } catch (error) {
+                console.error('Reorder all error:', error);
+                showNotification('Failed to reorder items', 'error');
+            }
         }
 
+        // Show notification message with animations
         function showNotification(message, type = 'success') {
-            // Create notification element
             const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg font-medium text-white shadow-lg transition-all transform translate-x-full`;
-            notification.className += type === 'success' ? ' bg-green-500' : ' bg-red-500';
-            notification.textContent = message;
+            const bgColor = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            }[type] || 'bg-gray-500';
+            
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg font-medium text-white shadow-lg transition-all transform translate-x-full ${bgColor}`;
+            notification.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="ph ph-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : type === 'warning' ? 'warning-circle' : 'info'} text-xl"></i>
+                    <span>${message}</span>
+                </div>
+            `;
             
             document.body.appendChild(notification);
             
-            // Animate in
-            setTimeout(() => {
+            // Slide in
+            requestAnimationFrame(() => {
                 notification.classList.remove('translate-x-full');
-            }, 100);
+            });
             
-            // Remove after 3 seconds
+            // Auto-remove after 3 seconds
             setTimeout(() => {
                 notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    if (document.body.contains(notification)) {
-                        document.body.removeChild(notification);
-                    }
-                }, 300);
+                setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
 
         // Event delegation for reorder buttons
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.reorder-item-btn')) {
-                const button = e.target.closest('.reorder-item-btn');
-                const item = JSON.parse(button.dataset.item);
-                addToCart(item);
+            // Handle single item reorder
+            const reorderItemBtn = e.target.closest('.reorder-item-btn');
+            if (reorderItemBtn) {
+                try {
+                    const item = JSON.parse(reorderItemBtn.dataset.item);
+                    addToCart(item);
+                } catch (error) {
+                    console.error('Reorder item error:', error);
+                    showNotification('Failed to reorder item', 'error');
+                }
             }
             
-            if (e.target.closest('.reorder-all-btn')) {
-                const button = e.target.closest('.reorder-all-btn');
-                const order = JSON.parse(button.dataset.order);
-                reorderAllItems(order);
+            // Handle reorder all items
+            const reorderAllBtn = e.target.closest('.reorder-all-btn');
+            if (reorderAllBtn) {
+                try {
+                    const order = JSON.parse(reorderAllBtn.dataset.order);
+                    reorderAllItems(order);
+                } catch (error) {
+                    console.error('Reorder all error:', error);
+                    showNotification('Failed to reorder items', 'error');
+                }
             }
         });
 
-        // Navigation between sections
+        // Navigation between profile sections
         const navMenuItems = document.querySelectorAll('.nav-menu-item');
         const contentSections = document.querySelectorAll('.content-section');
         
@@ -1266,27 +1886,34 @@
             item.addEventListener('click', () => {
                 const sectionName = item.dataset.section;
                 
+                if (!sectionName) return;
+                
                 // Hide all sections
-                contentSections.forEach(section => {
-                    section.classList.add('hidden');
-                });
+                contentSections.forEach(section => section.classList.add('hidden'));
                 
                 // Show selected section
                 const targetSection = document.getElementById(`${sectionName}-section`);
                 if (targetSection) {
                     targetSection.classList.remove('hidden');
+                    
+                    // Load section-specific data
+                    switch(sectionName) {
+                        case 'addresses':
+                            loadAddresses();
+                            break;
+                        case 'orders':
+                            loadOrderHistory();
+                            break;
+                    }
                 }
                 
-                // Load section-specific data
-                if (sectionName === 'addresses') {
-                    loadAddresses();
-                }
-                
-                // Update active state
+                // Update active state - remove from all items
                 navMenuItems.forEach(navItem => {
-                    navItem.classList.remove('bg-lime-50', 'dark:bg-lime-900/20');
+                    navItem.classList.remove('active');
                 });
-                item.classList.add('bg-lime-50', 'dark:bg-lime-900/20');
+                
+                // Add active state to clicked item
+                item.classList.add('active');
             });
         });
 
@@ -1294,13 +1921,19 @@
         let addresses = [];
         
         function loadAddresses() {
-            // Use user-specific storage key
             const addressesKey = getUserStorageKey('grocerymartAddresses');
             const savedAddresses = localStorage.getItem(addressesKey);
+            
             if (savedAddresses) {
-                addresses = JSON.parse(savedAddresses);
+                try {
+                    addresses = JSON.parse(savedAddresses);
+                } catch (error) {
+                    console.error('Error loading addresses:', error);
+                    addresses = [];
+                }
+            } else {
+                addresses = [];
             }
-            // Don't create default addresses - let users add their own
             
             renderAddresses();
         }
@@ -1308,12 +1941,15 @@
         function renderAddresses() {
             const addressesContainer = document.getElementById('addresses-container');
             
+            if (!addressesContainer) return;
+            
             if (addresses.length === 0) {
                 addressesContainer.innerHTML = `
-                    <div class="text-center py-12">
-                        <div class="text-6xl mb-4">📍</div>
-                        <p class="themed-subtle-text text-lg">No saved addresses yet</p>
-                        <p class="text-sm themed-subtle-text mt-2">Add an address to get started</p>
+                    <div class="text-center py-16">
+                        <div class="text-7xl mb-4">📍</div>
+                        <h3 class="text-xl font-bold themed-text mb-2">No saved addresses</h3>
+                        <p class="themed-subtle-text mb-4">Add your delivery address to get started</p>
+                        <p class="text-xs themed-subtle-text">Click "Add New Address" button above</p>
                     </div>
                 `;
                 return;
@@ -1455,6 +2091,12 @@
         updateProfileUI();
         loadOrderHistory();
         initializeClerk();
+        
+        // Set default active menu item (Orders section)
+        const defaultMenuItem = document.querySelector('.nav-menu-item[data-section="orders"]');
+        if (defaultMenuItem) {
+            defaultMenuItem.classList.add('active');
+        }
     </script>
 </body>
 </html>

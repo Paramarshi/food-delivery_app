@@ -7,6 +7,10 @@ export default function handler(req, res) {
     // Only send public environment variables to the client
     res.json({
         CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
-        CLERK_FRONTEND_API: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || ''
+        CLERK_FRONTEND_API: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || '',
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
     });
 }
+
+// NOTE: To enable Google Geocoding on the client, set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in your environment
+// Example (Windows PowerShell): $env:NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = 'your_key_here'
