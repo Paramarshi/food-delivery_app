@@ -12,6 +12,12 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Blockchain
+cache/
+artifacts/
+deployment-info.json
+*.deploy.log
+
 # Package locks (keep package.json but ignore locks for cross-platform compatibility)
 package-lock.json
 yarn.lock

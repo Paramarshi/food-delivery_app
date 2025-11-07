@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ethers Loading Test</title>
+    <style>
+        body { 
+            font-family: monospace; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: #0f0; 
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .info { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>Ethers.js Loading Test</h1>
+    <div id="output"></div>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            output.appendChild(div);
+        }
+
+        log('Starting test...', 'info');
+        log('Step 1: Loading Ethers.js CDN...', 'info');
+    </script>
+
+    <!-- Load Ethers from LOCAL file -->
+    <script src="./ethers.min.js"></script>
+
+    <script>
+        // This runs AFTER ethers script tag
+        log('Step 2: Checking if ethers is available...', 'info');
+        
+        if (typeof ethers !== 'undefined') {
+            log('✅ SUCCESS: Ethers.js is loaded!', 'success');
+            log(`Ethers version: ${ethers.version || 'v6.x'}`, 'success');
+        } else {
+            log('❌ FAILED: Ethers.js is NOT loaded!', 'error');
+        }
+    </script>
+
+    <!-- Load our script -->
+    <script src="./supplychain-web3.js"></script>
+
+    <script>
+        // This runs AFTER our script
+        setTimeout(() => {
+            log('Step 3: Checking SupplyChainWeb3...', 'info');
+            
+            if (typeof SupplyChainWeb3 !== 'undefined') {
+                log('✅ SUCCESS: SupplyChainWeb3 class is available!', 'success');
+                log(`Contract Address: ${CONTRACT_ADDRESS}`, 'success');
+            } else {
+                log('❌ FAILED: SupplyChainWeb3 is NOT available!', 'error');
+            }
+
+            log('Step 4: Test complete. Check results above.', 'info');
+        }, 500);
+    </script>
+</body>
+</html>

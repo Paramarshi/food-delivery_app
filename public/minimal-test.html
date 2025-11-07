@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Minimal Blockchain Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover { background: #45a049; }
+        .error { color: #f44336; }
+        .success { color: #4CAF50; }
+        .info { color: #2196F3; }
+        pre {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 Minimal Blockchain Connection Test</h1>
+    
+    <div class="box">
+        <h2>Step 1: Load Ethers.js</h2>
+        <div id="ethers-status">⏳ Loading...</div>
+    </div>
+
+    <div class="box">
+        <h2>Step 2: Connect Wallet</h2>
+        <button onclick="connectWallet()">Connect MetaMask</button>
+        <div id="wallet-status"></div>
+    </div>
+
+    <div class="box">
+        <h2>Step 3: Initialize Contract</h2>
+        <button onclick="initContract()">Initialize Smart Contract</button>
+        <div id="contract-status"></div>
+    </div>
+
+    <div class="box">
+        <h2>Step 4: Read from Blockchain</h2>
+        <button onclick="readContract()">Get Total Products</button>
+        <div id="read-status"></div>
+    </div>
+
+    <div class="box">
+        <h2>Console Log</h2>
+        <pre id="console"></pre>
+    </div>
+
+    <!-- Load Ethers.js from LOCAL file -->
+    <script src="./ethers.min.js"></script>
+
+    <script>
+        // Contract configuration
+        const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+        const CONTRACT_ABI = [
+            "function getTotalProducts() public view returns (uint256)",
+            "function getProduct(uint256 _productId) public view returns (string memory, string memory, string memory, address, uint8, bool, uint256, uint256)"
+        ];
+
+        // Global variables
+        let provider = null;
+        let signer = null;
+        let contract = null;
+        let account = null;
+
+        // Console logging
+        function log(message, type = 'info') {
+            const consoleDiv = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            consoleDiv.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            console.log(message);
+        }
+
+        // Check Ethers.js
+        window.addEventListener('DOMContentLoaded', () => {
+            const status = document.getElementById('ethers-status');
+            if (typeof ethers !== 'undefined') {
+                status.innerHTML = '<span class="success">✅ Ethers.js loaded successfully!</span>';
+                log('Ethers.js is available', 'success');
+                log('Version: ' + (ethers.version || '6.x'), 'info');
+            } else {
+                status.innerHTML = '<span class="error">❌ Ethers.js failed to load!</span>';
+                log('Ethers.js is NOT available', 'error');
+            }
+        });
+
+        // Connect Wallet
+        async function connectWallet() {
+            const statusDiv = document.getElementById('wallet-status');
+            try {
+                log('Connecting to MetaMask...');
+                
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('MetaMask is not installed');
+                }
+
+                // Request account access
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+                
+                account = accounts[0];
+                
+                // Create provider and signer
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+                
+                // Get network
+                const network = await provider.getNetwork();
+                
+                statusDiv.innerHTML = `
+                    <div class="success">✅ Wallet Connected!</div>
+                    <div>Account: ${account.substring(0, 6)}...${account.substring(account.length - 4)}</div>
+                    <div>Network: ${network.name} (Chain ID: ${network.chainId})</div>
+                `;
+                
+                log('Wallet connected: ' + account, 'success');
+                log('Network: ' + network.name + ' (Chain ID: ' + network.chainId + ')', 'info');
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+                log('Wallet connection failed: ' + error.message, 'error');
+            }
+        }
+
+        // Initialize Contract
+        async function initContract() {
+            const statusDiv = document.getElementById('contract-status');
+            try {
+                if (!signer) {
+                    throw new Error('Please connect wallet first');
+                }
+
+                log('Initializing contract...');
+                log('Contract Address: ' + CONTRACT_ADDRESS, 'info');
+                
+                // Create contract instance
+                contract = new ethers.Contract(
+                    CONTRACT_ADDRESS,
+                    CONTRACT_ABI,
+                    signer
+                );
+                
+                statusDiv.innerHTML = `
+                    <div class="success">✅ Contract Initialized!</div>
+                    <div>Address: ${CONTRACT_ADDRESS}</div>
+                `;
+                
+                log('Contract initialized successfully', 'success');
+                log('Contract address: ' + CONTRACT_ADDRESS, 'info');
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+                log('Contract initialization failed: ' + error.message, 'error');
+            }
+        }
+
+        // Read from Contract
+        async function readContract() {
+            const statusDiv = document.getElementById('read-status');
+            try {
+                if (!contract) {
+                    throw new Error('Please initialize contract first');
+                }
+
+                log('Reading total products from blockchain...');
+                
+                const total = await contract.getTotalProducts();
+                
+                statusDiv.innerHTML = `
+                    <div class="success">✅ Successfully read from blockchain!</div>
+                    <div>Total Products: <strong>${total.toString()}</strong></div>
+                `;
+                
+                log('Total products: ' + total.toString(), 'success');
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+                log('Read failed: ' + error.message, 'error');
+                log('Make sure Hardhat node is running and contract is deployed', 'info');
+            }
+        }
+    </script>
+</body>
+</html>

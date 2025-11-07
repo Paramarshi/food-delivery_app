@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain Tracker - Products Journey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Ethers.js LOCAL -->
+    <script src="./ethers.min.js"></script>
+    
+    <!-- Supply Chain Web3 Integration -->
+    <script src="./supplychain-web3.js?v=3"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .journey-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .journey-timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #10b981, #3b82f6, #8b5cf6);
+        }
+        .journey-step {
+            position: relative;
+            margin-bottom: 20px;
+            padding-left: 20px;
+        }
+        .journey-step::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+        .journey-step.current::before {
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+            50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.2); }
+        }
+        .product-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .map-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #e5e7eb;
+        }
+        .gps-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        }
+        .copy-button {
+            transition: all 0.2s;
+        }
+        .copy-button:hover {
+            transform: scale(1.05);
+        }
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+        .distance-badge {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-blue-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">🔗 Supply Chain Tracker</h1>
+                    <p class="text-sm text-gray-600 mt-1">Track products from farm to table</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white rounded-lg p-6 shadow-sm">
+                <div class="text-sm text-gray-600">Total Products</div>
+                <div class="text-3xl font-bold text-gray-900 mt-2" id="total-products">--</div>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-sm">
+                <div class="text-sm text-gray-600">In Transit</div>
+                <div class="text-3xl font-bold text-blue-600 mt-2" id="in-transit">--</div>
+            </div>
+            <div class="bg-white rounded-lg p-6 shadow-sm">
+                <div class="text-sm text-gray-600">Delivered</div>
+                <div class="text-3xl font-bold text-green-600 mt-2" id="delivered">--</div>
+            </div>
+        </div>
+
+        <!-- Search/Scan Section -->
+        <div class="bg-white rounded-lg p-6 shadow-sm mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Search or Scan Product</h2>
+            <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[300px]">
+                    <input type="text" id="search-input" placeholder="Enter Product ID (e.g., 0, 1, 2...) or Product Name" 
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg">
+                </div>
+                <button onclick="searchProduct()" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded-lg transition-all flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                    Search
+                </button>
+                <button onclick="loadAllProducts()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-all">
+                    Load All Products
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 mt-3">💡 Tip: Enter a product ID number or scan a QR code to track the product's journey</p>
+        </div>
+
+        <!-- Available Products List -->
+        <div id="available-products" class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 shadow-sm mb-6 hidden">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">📦 Available Product IDs</h3>
+                    <p class="text-sm text-gray-600">Click on any product ID to view its supply chain journey</p>
+                </div>
+                <button onclick="document.getElementById('available-products').classList.add('hidden')" 
+                    class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+            </div>
+            <div id="product-ids-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <!-- Product ID buttons will be added here -->
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg p-4 shadow-sm mb-6">
+            <div class="flex flex-wrap gap-4 items-center">
+                <span class="text-sm font-medium text-gray-700">Filter by Stage:</span>
+                <select id="stage-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <option value="">All Stages</option>
+                    <option value="0">Farm</option>
+                    <option value="1">Processing</option>
+                    <option value="2">Quality Check</option>
+                    <option value="3">Packaging</option>
+                    <option value="4">Warehouse</option>
+                    <option value="5">Distribution</option>
+                    <option value="6">Retail</option>
+                    <option value="7">Delivery</option>
+                    <option value="8">Delivered</option>
+                </select>
+                <button onclick="filterProducts()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all">
+                    Apply Filter
+                </button>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Products will be loaded here -->
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+            <p class="mt-4 text-gray-600">Loading products from blockchain...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-12">
+            <svg class="mx-auto h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+            <h3 class="mt-4 text-lg font-medium text-gray-900">No products found</h3>
+            <p class="mt-2 text-gray-500">Enter a product ID to search or load all products from the blockchain</p>
+        </div>
+    </main>
+
+    <!-- Product Detail Modal -->
+    <div id="product-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let web3Instance = null;
+        let allProducts = [];
+        const STAGE_NAMES = [
+            "Farm", "Processing", "Quality Check", "Packaging", 
+            "Warehouse", "Distribution", "Retail", "Delivery", "Delivered"
+        ];
+
+        // GPS Utilities
+        function parseGPSCoordinates(location) {
+            // Parse GPS coordinates from location string
+            // Formats supported:
+            // - "28.6139° N, 77.2090° E"
+            // - "28.6139, 77.2090"
+            // - "Lat: 28.6139, Long: 77.2090"
+            
+            if (!location) return null;
+            
+            const patterns = [
+                // Format: 28.6139° N, 77.2090° E
+                /(\d+\.?\d*)\s*°?\s*([NS]),?\s*(\d+\.?\d*)\s*°?\s*([EW])/i,
+                // Format: 28.6139, 77.2090
+                /(\d+\.?\d*),?\s*(\d+\.?\d*)/,
+                // Format: Lat: 28.6139, Long: 77.2090
+                /lat:?\s*(\d+\.?\d*),?\s*lon(?:g)?:?\s*(\d+\.?\d*)/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = location.match(pattern);
+                if (match) {
+                    let lat, lng;
+                    
+                    if (match.length === 5) {
+                        // Has N/S and E/W indicators
+                        lat = parseFloat(match[1]) * (match[2].toUpperCase() === 'S' ? -1 : 1);
+                        lng = parseFloat(match[3]) * (match[4].toUpperCase() === 'W' ? -1 : 1);
+                    } else if (match.length === 3) {
+                        // Just numbers
+                        lat = parseFloat(match[1]);
+                        lng = parseFloat(match[2]);
+                    }
+                    
+                    if (lat && lng && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                        return { lat, lng };
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        function formatGPSCoordinates(coords) {
+            if (!coords) return null;
+            
+            const latDir = coords.lat >= 0 ? 'N' : 'S';
+            const lngDir = coords.lng >= 0 ? 'E' : 'W';
+            
+            return `${Math.abs(coords.lat).toFixed(4)}° ${latDir}, ${Math.abs(coords.lng).toFixed(4)}° ${lngDir}`;
+        }
+
+        function calculateDistance(coords1, coords2) {
+            // Haversine formula to calculate distance between two GPS coordinates
+            if (!coords1 || !coords2) return null;
+            
+            const R = 6371; // Earth's radius in kilometers
+            const dLat = (coords2.lat - coords1.lat) * Math.PI / 180;
+            const dLng = (coords2.lng - coords1.lng) * Math.PI / 180;
+            
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                     Math.cos(coords1.lat * Math.PI / 180) * Math.cos(coords2.lat * Math.PI / 180) *
+                     Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c;
+            
+            return distance;
+        }
+
+        function formatDistance(km) {
+            if (km < 1) {
+                return `${Math.round(km * 1000)} m`;
+            } else {
+                return `${km.toFixed(1)} km`;
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show temporary success message
+                const btn = event.target.closest('button');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '✓ Copied!';
+                btn.classList.add('bg-green-500');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('bg-green-500');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy to clipboard');
+            });
+        }
+
+        function getGoogleMapsLink(coords) {
+            if (!coords) return null;
+            return `https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
+        }
+
+        function getGoogleMapsEmbedUrl(coords) {
+            if (!coords) return null;
+            return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${coords.lat},${coords.lng}&zoom=15`;
+        }
+
+        // Initialize blockchain connection automatically (read-only)
+        async function initBlockchain() {
+            try {
+                // Check if ethers is available
+                if (typeof ethers === 'undefined') {
+                    console.error('Ethers.js not loaded');
+                    return false;
+                }
+
+                // Create read-only provider (no wallet needed)
+                const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
+                
+                // Initialize contract with read-only provider
+                const contractABI = [
+                    "function getTotalProducts() public view returns (uint256)",
+                    "function getProduct(uint256 _productId) public view returns (string memory, string memory, string memory, address, uint8, bool, uint256, uint256)",
+                    "function getProductJourney(uint256 _productId) public view returns (tuple(uint8 stage, string location, uint256 timestamp, address verifiedBy, string verifierName, uint8 verifierRole, uint256 temperature, string notes, string ipfsHash)[])",
+                    "function getProductCertifications(uint256 _productId) public view returns (tuple(string certName, string certAuthority, uint256 certDate, uint256 expiryDate, string certHash, bool isValid)[])"
+                ];
+                
+                const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+                const contract = new ethers.Contract(contractAddress, contractABI, provider);
+                
+                web3Instance = { contract, provider };
+                console.log('✅ Blockchain initialized (read-only mode)');
+                
+                // Load available product IDs
+                await loadAvailableProductIds();
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Failed to initialize blockchain:', error);
+                return false;
+            }
+        }
+
+        // Load and display available product IDs
+        async function loadAvailableProductIds() {
+            try {
+                if (!web3Instance) return;
+
+                const total = await web3Instance.contract.getTotalProducts();
+                const totalNum = Number(total);
+
+                if (totalNum === 0) return;
+
+                // Show the available products section
+                document.getElementById('available-products').classList.remove('hidden');
+                
+                const container = document.getElementById('product-ids-container');
+                container.innerHTML = '';
+
+                // Create clickable buttons for each product ID
+                for (let i = 0; i < totalNum; i++) {
+                    // Fetch basic product info for preview
+                    try {
+                        const productData = await web3Instance.contract.getProduct(i);
+                        const productName = productData[0];
+                        const productType = productData[1];
+                        const currentStage = Number(productData[4]);
+                        
+                        const stageColor = currentStage === 8 ? 'bg-green-100 border-green-300' : 'bg-blue-100 border-blue-300';
+                        
+                        const button = document.createElement('button');
+                        button.className = `${stageColor} border-2 rounded-lg p-3 hover:shadow-md transition-all text-left`;
+                        button.onclick = () => selectProductId(i);
+                        button.innerHTML = `
+                            <div class="font-bold text-gray-900 text-lg mb-1">ID: ${i}</div>
+                            <div class="text-xs text-gray-600 truncate" title="${productName}">${productName}</div>
+                            <div class="text-xs text-gray-500 mt-1">${productType}</div>
+                        `;
+                        
+                        container.appendChild(button);
+                    } catch (error) {
+                        // If can't fetch details, just show the ID
+                        const button = document.createElement('button');
+                        button.className = 'bg-gray-100 border-2 border-gray-300 rounded-lg p-3 hover:shadow-md transition-all';
+                        button.onclick = () => selectProductId(i);
+                        button.innerHTML = `
+                            <div class="font-bold text-gray-900 text-center text-lg">ID: ${i}</div>
+                            <div class="text-xs text-gray-500 text-center mt-1">Click to view</div>
+                        `;
+                        container.appendChild(button);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading product IDs:', error);
+            }
+        }
+
+        // Select a product ID and search for it
+        function selectProductId(productId) {
+            document.getElementById('search-input').value = productId;
+            searchProduct();
+            // Scroll to results
+            window.scrollTo({ top: 400, behavior: 'smooth' });
+        }
+
+        // Search for a specific product
+        async function searchProduct() {
+            const searchInput = document.getElementById('search-input').value.trim();
+            
+            if (!searchInput) {
+                alert('Please enter a Product ID');
+                return;
+            }
+
+            if (!web3Instance) {
+                const initialized = await initBlockchain();
+                if (!initialized) {
+                    alert('Failed to connect to blockchain. Make sure Hardhat node is running.');
+                    return;
+                }
+            }
+
+            const container = document.getElementById('products-container');
+            const loading = document.getElementById('loading-state');
+            const empty = document.getElementById('empty-state');
+            
+            loading.classList.remove('hidden');
+            container.innerHTML = '';
+            empty.classList.add('hidden');
+
+            try {
+                // Try to parse as product ID number
+                const productId = parseInt(searchInput);
+                
+                if (isNaN(productId) || productId < 0) {
+                    throw new Error('Invalid Product ID. Please enter a number (e.g., 0, 1, 2)');
+                }
+
+                // Fetch product from blockchain
+                const productData = await web3Instance.contract.getProduct(productId);
+                const journey = await web3Instance.contract.getProductJourney(productId);
+
+                const product = {
+                    id: productId,
+                    name: productData[0],
+                    type: productData[1],
+                    origin: productData[2],
+                    farmer: productData[3],
+                    currentStage: Number(productData[4]),
+                    isOrganic: productData[5],
+                    qualityScore: Number(productData[6]),
+                    timestamp: Number(productData[7]),
+                    journey: journey.map(j => ({
+                        stage: Number(j.stage),
+                        location: j.location,
+                        timestamp: Number(j.timestamp),
+                        verifiedBy: j.verifiedBy,
+                        verifierName: j.verifierName,
+                        verifierRole: Number(j.verifierRole),
+                        temperature: Number(j.temperature),
+                        notes: j.notes,
+                        ipfsHash: j.ipfsHash
+                    }))
+                };
+
+                allProducts = [product];
+                displayProducts([product]);
+                
+                // Update stats
+                document.getElementById('total-products').textContent = '1';
+                document.getElementById('in-transit').textContent = product.currentStage === 8 ? '0' : '1';
+                document.getElementById('delivered').textContent = product.currentStage === 8 ? '1' : '0';
+                
+                loading.classList.add('hidden');
+
+            } catch (error) {
+                console.error('Search error:', error);
+                loading.classList.add('hidden');
+                empty.classList.remove('hidden');
+                
+                if (error.message.includes('Invalid Product ID')) {
+                    alert(error.message);
+                } else {
+                    alert('Product not found or error loading data. Make sure the Product ID is correct.');
+                }
+            }
+        }
+
+        // Load all products
+        async function loadAllProducts() {
+            if (!web3Instance) {
+                const initialized = await initBlockchain();
+                if (!initialized) {
+                    alert('Failed to connect to blockchain. Make sure Hardhat node is running.');
+                    return;
+                }
+            }
+
+            const container = document.getElementById('products-container');
+            const loading = document.getElementById('loading-state');
+            const empty = document.getElementById('empty-state');
+            
+            loading.classList.remove('hidden');
+            container.innerHTML = '';
+            empty.classList.add('hidden');
+
+            try {
+                // Get total products
+                const total = await web3Instance.contract.getTotalProducts();
+                const totalNum = Number(total);
+                
+                document.getElementById('total-products').textContent = totalNum;
+
+                if (totalNum === 0) {
+                    loading.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                // Load all products
+                allProducts = [];
+                let inTransit = 0;
+                let delivered = 0;
+
+                for (let i = 0; i < totalNum; i++) {
+                    try {
+                        const productData = await web3Instance.contract.getProduct(i);
+                        const journey = await web3Instance.contract.getProductJourney(i);
+                        
+                        const product = {
+                            id: i,
+                            name: productData[0],
+                            type: productData[1],
+                            origin: productData[2],
+                            farmer: productData[3],
+                            currentStage: Number(productData[4]),
+                            isOrganic: productData[5],
+                            qualityScore: Number(productData[6]),
+                            timestamp: Number(productData[7]),
+                            journey: journey.map(j => ({
+                                stage: Number(j.stage),
+                                location: j.location,
+                                timestamp: Number(j.timestamp),
+                                verifiedBy: j.verifiedBy,
+                                verifierName: j.verifierName,
+                                verifierRole: Number(j.verifierRole),
+                                temperature: Number(j.temperature),
+                                notes: j.notes,
+                                ipfsHash: j.ipfsHash
+                            }))
+                        };
+
+                        allProducts.push(product);
+
+                        // Update stats
+                        if (product.currentStage === 8) {
+                            delivered++;
+                        } else {
+                            inTransit++;
+                        }
+
+                    } catch (error) {
+                        console.error(`Error loading product ${i}:`, error);
+                    }
+                }
+
+                // Update stats
+                document.getElementById('in-transit').textContent = inTransit;
+                document.getElementById('delivered').textContent = delivered;
+
+                // Display products
+                displayProducts(allProducts);
+                loading.classList.add('hidden');
+
+            } catch (error) {
+                console.error('Error loading products:', error);
+                loading.classList.add('hidden');
+                empty.classList.remove('hidden');
+                alert('Failed to load products: ' + error.message);
+            }
+        }
+
+        // Display products
+        function displayProducts(products) {
+            const container = document.getElementById('products-container');
+            container.innerHTML = '';
+
+            if (products.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            }
+
+            products.forEach(product => {
+                const card = createProductCard(product);
+                container.appendChild(card);
+            });
+        }
+
+        // Create product card
+        function createProductCard(product) {
+            const card = document.createElement('div');
+            card.className = 'product-card bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer';
+            card.onclick = () => showProductDetail(product);
+
+            const stageColor = product.currentStage === 8 ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
+            const stageName = STAGE_NAMES[product.currentStage] || 'Unknown';
+
+            card.innerHTML = `
+                <div class="p-6">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 mb-1">${product.name}</h3>
+                            <p class="text-sm text-gray-600">Product ID: #${product.id}</p>
+                        </div>
+                        ${product.isOrganic ? '<span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">🌱 Organic</span>' : ''}
+                    </div>
+
+                    <!-- Info Grid -->
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <div class="text-xs text-gray-500">Type</div>
+                            <div class="text-sm font-medium text-gray-900">${product.type}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Origin</div>
+                            <div class="text-sm font-medium text-gray-900">${product.origin}</div>
+                        </div>
+                    </div>
+
+                    <!-- Current Stage -->
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs text-gray-500">Current Stage</span>
+                            <span class="${stageColor} text-xs font-semibold px-2 py-1 rounded">${stageName}</span>
+                        </div>
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all" 
+                                style="width: ${((product.currentStage + 1) / 9) * 100}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quality Score -->
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs text-gray-500">Quality Score</span>
+                        <div class="flex items-center gap-1">
+                            ${Array.from({length: 5}, (_, i) => {
+                                const filled = i < Math.floor(product.qualityScore / 20);
+                                return `<svg class="w-4 h-4 ${filled ? 'text-yellow-400' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>`;
+                            }).join('')}
+                            <span class="text-sm font-semibold ml-2">${product.qualityScore}/100</span>
+                        </div>
+                    </div>
+
+                    <!-- Journey Steps -->
+                    <div class="text-xs text-gray-500 mb-2">Journey Steps: ${product.journey.length}</div>
+                    
+                    <!-- View Details Button -->
+                    <button class="w-full mt-2 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-lg transition-colors">
+                        View Full Journey →
+                    </button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Show product detail modal
+        function showProductDetail(product) {
+            const modal = document.getElementById('product-modal');
+            const content = document.getElementById('modal-content');
+
+            const journeyHTML = product.journey.map((step, index) => {
+                const date = new Date(Number(step.timestamp) * 1000);
+                const isCurrentStep = index === product.journey.length - 1;
+                
+                // Format location with icon
+                const locationIcon = getLocationIcon(Number(step.stage));
+                const stageName = STAGE_NAMES[Number(step.stage)] || 'Unknown Stage';
+                const location = step.location || 'Location not specified';
+                
+                return `
+                    <div class="journey-step ${isCurrentStep ? 'current' : ''}">
+                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 ${isCurrentStep ? 'border-green-500' : 'border-gray-300'}">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-2xl">${locationIcon}</span>
+                                        <h4 class="font-bold text-gray-900 text-lg">${stageName}</h4>
+                                        ${isCurrentStep ? '<span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded ml-2">● Current Location</span>' : ''}
+                                    </div>
+                                    <div class="flex items-start gap-2 text-gray-700 ml-9">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                                        </svg>
+                                        <span class="font-medium">${location}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-4 ml-9">
+                                <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                    <div class="flex items-center gap-2 text-gray-500 mb-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                        </svg>
+                                        <span class="text-xs">Date</span>
+                                    </div>
+                                    <span class="font-semibold text-gray-900">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                </div>
+                                
+                                <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                    <div class="flex items-center gap-2 text-gray-500 mb-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span class="text-xs">Time</span>
+                                    </div>
+                                    <span class="font-semibold text-gray-900">${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                                
+                                ${step.temperature > 0 ? `
+                                <div class="bg-white rounded-lg p-3 border border-gray-200">
+                                    <div class="flex items-center gap-2 text-gray-500 mb-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+                                        </svg>
+                                        <span class="text-xs">Temperature</span>
+                                    </div>
+                                    <span class="font-semibold text-gray-900">${step.temperature}°C</span>
+                                </div>
+                                ` : ''}
+                                
+                                <div class="bg-white rounded-lg p-3 border border-gray-200 ${step.temperature > 0 ? '' : 'col-span-2'}">
+                                    <div class="flex items-center gap-2 text-gray-500 mb-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                                        </svg>
+                                        <span class="text-xs">Verified by</span>
+                                    </div>
+                                    <span class="font-semibold text-gray-900 text-sm">${step.verifierName || 'System'}</span>
+                                </div>
+                            </div>
+                            
+                            ${step.notes ? `
+                            <div class="mt-4 ml-9">
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                                    <div class="flex items-start gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                        </svg>
+                                        <div>
+                                            <div class="text-xs font-semibold text-blue-800 mb-1">Additional Notes:</div>
+                                            <div class="text-sm text-blue-900">${step.notes}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            content.innerHTML = `
+                <div class="p-6">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">${product.name}</h2>
+                            <p class="text-gray-600">Product ID: #${product.id} • ${product.type} from ${product.origin}</p>
+                        </div>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                            <div class="text-sm text-blue-700 mb-1">Current Stage</div>
+                            <div class="font-bold text-lg text-blue-900">${STAGE_NAMES[product.currentStage]}</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                            <div class="text-sm text-green-700 mb-1">Quality Score</div>
+                            <div class="font-bold text-lg text-green-900">${product.qualityScore}/100</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                            <div class="text-sm text-purple-700 mb-1">Status</div>
+                            <div class="font-bold text-lg text-purple-900">${product.isOrganic ? '🌱 Organic' : 'Standard'}</div>
+                        </div>
+                    </div>
+
+                    <!-- Journey Timeline -->
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-green-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
+                            </svg>
+                            Supply Chain Journey
+                        </h3>
+                        <div class="journey-timeline">
+                            ${journeyHTML}
+                        </div>
+                    </div>
+
+                    <!-- Farmer Info -->
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
+                            <div class="text-sm text-green-800 font-semibold">Registered by Farmer</div>
+                        </div>
+                        <div class="text-xs text-green-700 font-mono bg-white rounded p-2 border border-green-200">${product.farmer}</div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        // Get location icon based on stage
+        function getLocationIcon(stage) {
+            const icons = {
+                0: '🌾', // Farm
+                1: '🏭', // Processing
+                2: '🔬', // Quality Check
+                3: '📦', // Packaging
+                4: '🏢', // Warehouse
+                5: '🚚', // Distribution
+                6: '🏪', // Retail
+                7: '🚗', // Delivery
+                8: '✅'  // Delivered
+            };
+            return icons[stage] || '📍';
+        }
+
+        function closeModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        // Close modal on outside click
+        document.getElementById('product-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'product-modal') {
+                closeModal();
+            }
+        });
+
+        // Allow Enter key to search
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchProduct();
+            }
+        });
+
+        // Filter products
+        document.getElementById('stage-filter').addEventListener('change', filterProducts);
+
+        function filterProducts() {
+            const stageFilter = document.getElementById('stage-filter').value;
+
+            if (!allProducts || allProducts.length === 0) {
+                return;
+            }
+
+            if (!stageFilter) {
+                displayProducts(allProducts);
+                return;
+            }
+
+            const filtered = allProducts.filter(product => {
+                return product.currentStage === parseInt(stageFilter);
+            });
+
+            displayProducts(filtered);
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('empty-state').classList.remove('hidden');
+            
+            // Auto-initialize blockchain connection
+            initBlockchain();
+        });
+    </script>
+</body>
+</html>

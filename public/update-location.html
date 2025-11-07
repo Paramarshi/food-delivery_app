@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Product Location - Supply Chain Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Ethers.js LOCAL -->
+    <script src="./ethers.min.js"></script>
+    
+    <!-- Supply Chain Web3 Integration -->
+    <script src="./supplychain-web3.js?v=3"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">📦 Update Product Location</h1>
+                    <p class="text-sm text-gray-600 mt-1">Add checkpoints as products move through supply chain</p>
+                </div>
+                <div>
+                    <button onclick="connectWallet()" id="wallet-btn" 
+                        class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                        Connect Wallet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Wallet Status -->
+        <div id="wallet-status" class="bg-white rounded-lg p-4 shadow-sm mb-6 hidden">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <div>
+                    <div class="text-sm text-gray-600">Connected Wallet</div>
+                    <div class="font-mono text-sm font-semibold" id="wallet-address">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Location Form -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Add New Checkpoint</h2>
+            
+            <form id="update-form" class="space-y-6">
+                <!-- Product ID -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Product ID <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" id="product-id" required min="0"
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Enter Product ID (e.g., 0, 1, 2...)">
+                    <button type="button" onclick="loadProductInfo()" 
+                        class="mt-2 text-sm text-purple-600 hover:text-purple-700 font-semibold">
+                        Load Product Info
+                    </button>
+                </div>
+
+                <!-- Product Info Display -->
+                <div id="product-info" class="hidden bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-blue-900 mb-2">Current Product Status:</h3>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <span class="text-blue-700">Name:</span>
+                            <span class="font-semibold ml-2" id="info-name">--</span>
+                        </div>
+                        <div>
+                            <span class="text-blue-700">Type:</span>
+                            <span class="font-semibold ml-2" id="info-type">--</span>
+                        </div>
+                        <div>
+                            <span class="text-blue-700">Origin:</span>
+                            <span class="font-semibold ml-2" id="info-origin">--</span>
+                        </div>
+                        <div>
+                            <span class="text-blue-700">Current Stage:</span>
+                            <span class="font-semibold ml-2" id="info-stage">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage Selection -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        New Stage <span class="text-red-500">*</span>
+                    </label>
+                    <select id="stage" required
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option value="">Select Stage</option>
+                        <option value="0">🌾 Farm - Initial harvest/production</option>
+                        <option value="1">🏭 Processing - Cleaning, sorting, processing</option>
+                        <option value="2">🔬 Quality Check - Quality inspection and testing</option>
+                        <option value="3">📦 Packaging - Packing for distribution</option>
+                        <option value="4">🏢 Warehouse - Storage facility</option>
+                        <option value="5">🚚 Distribution - In transit to retail</option>
+                        <option value="6">🏪 Retail - Store/Market location</option>
+                        <option value="7">🚗 Delivery - Out for delivery to customer</option>
+                        <option value="8">✅ Delivered - Final delivery completed</option>
+                    </select>
+                </div>
+
+                <!-- Location -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Location <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="location" required
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="e.g., Green Valley Farm, Mumbai or Distribution Center, Delhi">
+                    <p class="text-xs text-gray-500 mt-1">Enter the specific location/facility name and city</p>
+                </div>
+
+                <!-- Temperature (Optional) -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Temperature (°C) <span class="text-gray-400">(Optional)</span>
+                    </label>
+                    <input type="number" id="temperature" step="0.1"
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="e.g., 4.5">
+                    <p class="text-xs text-gray-500 mt-1">Leave blank if temperature monitoring is not required</p>
+                </div>
+
+                <!-- Verifier Name -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Your Name/Company <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="verifier-name" required
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="e.g., John Smith - Quality Inspector">
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Notes <span class="text-gray-400">(Optional)</span>
+                    </label>
+                    <textarea id="notes" rows="3"
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Add any additional information about this checkpoint..."></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex gap-4">
+                    <button type="submit"
+                        class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg transition-all flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Update Location
+                    </button>
+                    <button type="button" onclick="resetForm()"
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-4 px-6 rounded-lg transition-all">
+                        Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Recent Updates -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Location Updates</h2>
+            <div id="recent-updates" class="space-y-3">
+                <div class="text-center text-gray-500 py-8">
+                    No recent updates. Submit a location update to see it here.
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 text-green-600">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Location Updated!</h3>
+            <p class="text-gray-600 mb-6">The product checkpoint has been successfully added to the blockchain.</p>
+            <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left text-sm">
+                <div class="font-mono text-xs text-gray-600 mb-1">Transaction Hash:</div>
+                <div class="font-mono text-xs break-all" id="tx-hash">--</div>
+            </div>
+            <button onclick="closeSuccessModal()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all">
+                Add Another Update
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let web3Instance = null;
+        let walletConnected = false;
+
+        const STAGE_NAMES = [
+            "Farm", "Processing", "Quality Check", "Packaging", 
+            "Warehouse", "Distribution", "Retail", "Delivery", "Delivered"
+        ];
+
+        // Connect Wallet
+        async function connectWallet() {
+            const btn = document.getElementById('wallet-btn');
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Connecting...';
+
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('MetaMask is not installed!');
+                }
+
+                // Create Web3 instance
+                web3Instance = new SupplyChainWeb3();
+                await web3Instance.init();
+
+                // Update UI
+                walletConnected = true;
+                btn.textContent = '✅ Connected';
+                btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                btn.classList.add('bg-green-600');
+
+                // Show wallet status
+                document.getElementById('wallet-status').classList.remove('hidden');
+                document.getElementById('wallet-address').textContent = 
+                    web3Instance.account.substring(0, 10) + '...' + web3Instance.account.substring(web3Instance.account.length - 8);
+
+            } catch (error) {
+                alert('Failed to connect wallet: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = 'Connect Wallet';
+            }
+        }
+
+        // Load Product Info
+        async function loadProductInfo() {
+            const productId = document.getElementById('product-id').value;
+            if (!productId) {
+                alert('Please enter a Product ID');
+                return;
+            }
+
+            try {
+                // Use read-only connection if wallet not connected
+                let contract;
+                if (web3Instance && web3Instance.contract) {
+                    contract = web3Instance.contract;
+                } else {
+                    const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
+                    const contractABI = [
+                        "function getProduct(uint256 _productId) public view returns (string memory, string memory, string memory, address, uint8, bool, uint256, uint256)"
+                    ];
+                    contract = new ethers.Contract(
+                        "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+                        contractABI,
+                        provider
+                    );
+                }
+
+                const product = await contract.getProduct(productId);
+                
+                // Display product info
+                document.getElementById('info-name').textContent = product[0];
+                document.getElementById('info-type').textContent = product[1];
+                document.getElementById('info-origin').textContent = product[2];
+                document.getElementById('info-stage').textContent = STAGE_NAMES[Number(product[4])];
+                document.getElementById('product-info').classList.remove('hidden');
+
+            } catch (error) {
+                alert('Product not found or error loading data: ' + error.message);
+            }
+        }
+
+        // Handle Form Submit
+        document.getElementById('update-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!walletConnected) {
+                alert('Please connect your wallet first!');
+                return;
+            }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<div class="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div> Processing...';
+
+                // Get form data
+                const productId = document.getElementById('product-id').value;
+                const stage = document.getElementById('stage').value;
+                const location = document.getElementById('location').value;
+                const temperature = document.getElementById('temperature').value || 0;
+                const verifierName = document.getElementById('verifier-name').value;
+                const notes = document.getElementById('notes').value || '';
+
+                console.log('Adding checkpoint:', {productId, stage, location, temperature, verifierName, notes});
+
+                // Call smart contract
+                const tx = await web3Instance.contract.addCheckpoint(
+                    productId,
+                    stage,
+                    location,
+                    Math.floor(parseFloat(temperature) * 10), // Convert to fixed decimal
+                    notes,
+                    verifierName
+                );
+
+                console.log('Transaction sent:', tx.hash);
+                
+                // Wait for confirmation
+                const receipt = await tx.wait();
+                console.log('Transaction confirmed:', receipt);
+
+                // Show success modal
+                document.getElementById('tx-hash').textContent = tx.hash;
+                document.getElementById('success-modal').classList.remove('hidden');
+
+                // Add to recent updates
+                addRecentUpdate({
+                    productId,
+                    stage: STAGE_NAMES[stage],
+                    location,
+                    timestamp: new Date()
+                });
+
+                // Reset form
+                resetForm();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update location: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        // Reset Form
+        function resetForm() {
+            document.getElementById('update-form').reset();
+            document.getElementById('product-info').classList.add('hidden');
+        }
+
+        // Close Success Modal
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        // Add Recent Update
+        function addRecentUpdate(update) {
+            const container = document.getElementById('recent-updates');
+            
+            // Remove empty state
+            if (container.querySelector('.text-center')) {
+                container.innerHTML = '';
+            }
+
+            const updateDiv = document.createElement('div');
+            updateDiv.className = 'bg-green-50 border-l-4 border-green-500 p-4 rounded';
+            updateDiv.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="font-semibold text-green-900">Product #${update.productId} - ${update.stage}</div>
+                        <div class="text-sm text-green-700 mt-1">📍 ${update.location}</div>
+                    </div>
+                    <div class="text-xs text-green-600">${update.timestamp.toLocaleTimeString()}</div>
+                </div>
+            `;
+            
+            container.insertBefore(updateDiv, container.firstChild);
+
+            // Keep only last 5 updates
+            while (container.children.length > 5) {
+                container.removeChild(container.lastChild);
+            }
+        }
+    </script>
+</body>
+</html>

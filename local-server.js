@@ -280,6 +280,229 @@ app.post('/api/users', (req, res) => {
   res.json(user);
 });
 
+const paymentStorage = new Map();
+
+app.get('/api/payment', (req, res) => {
+  const { transactionId } = req.query;
+  
+  if (!transactionId) {
+    return res.status(400).json({ error: 'Transaction ID is required' });
+  }
+  
+  const payment = paymentStorage.get(transactionId);
+  
+  if (!payment) {
+    return res.status(404).json({ error: 'Transaction not found' });
+  }
+  
+  res.json({ success: true, payment });
+});
+
+app.post('/api/payment', async (req, res) => {
+  const { 
+    orderId, 
+    amount, 
+    paymentMethod, 
+    cardDetails, 
+    upiId, 
+    walletType, 
+    bankCode,
+    customerEmail,
+    customerPhone 
+  } = req.body;
+  
+  if (!orderId || !amount || !paymentMethod) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Order ID, amount, and payment method are required' 
+    });
+  }
+  
+  if (amount <= 0) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Amount must be greater than 0' 
+    });
+  }
+  
+  try {
+    let paymentResult;
+    
+    switch (paymentMethod) {
+      case 'card':
+        paymentResult = await processCardPayment(cardDetails, amount);
+        break;
+      case 'upi':
+        paymentResult = await processUPIPayment(upiId, amount);
+        break;
+      case 'wallet':
+        paymentResult = await processWalletPayment(walletType, amount);
+        break;
+      case 'netbanking':
+        paymentResult = await processNetBankingPayment(bankCode, amount);
+        break;
+      default:
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Invalid payment method' 
+        });
+    }
+    
+    if (paymentResult.success) {
+      const transactionId = generateTransactionId();
+      const paymentRecord = {
+        transactionId,
+        orderId,
+        amount,
+        paymentMethod,
+        status: 'success',
+        timestamp: new Date().toISOString(),
+        customerEmail,
+        customerPhone
+      };
+      
+      paymentStorage.set(transactionId, paymentRecord);
+      
+      res.json({
+        success: true,
+        transactionId,
+        orderId,
+        amount,
+        paymentMethod,
+        timestamp: paymentRecord.timestamp,
+        message: 'Payment processed successfully'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: paymentResult.error || 'Payment processing failed',
+        orderId
+      });
+    }
+  } catch (error) {
+    console.error('Payment processing error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error during payment processing'
+    });
+  }
+});
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+function generateTransactionId() {
+  return `TXN${Date.now()}${Math.floor(Math.random() * 10000)}`;
+}
+
+function detectCardType(cardNumber) {
+  const firstDigit = cardNumber.charAt(0);
+  if (firstDigit === '4') return 'Visa';
+  if (firstDigit === '5') return 'Mastercard';
+  if (firstDigit === '3') return 'American Express';
+  if (firstDigit === '6') return 'Discover';
+  return 'Unknown';
+}
+
+function maskUPIId(upiId) {
+  const [username, domain] = upiId.split('@');
+  if (username.length <= 4) return upiId;
+  return `${username.slice(0, 2)}${'*'.repeat(username.length - 4)}${username.slice(-2)}@${domain}`;
+}
+
+function getBankName(bankCode) {
+  const banks = {
+    'sbi': 'State Bank of India',
+    'hdfc': 'HDFC Bank',
+    'icici': 'ICICI Bank',
+    'axis': 'Axis Bank',
+    'kotak': 'Kotak Mahindra Bank',
+    'pnb': 'Punjab National Bank',
+    'bob': 'Bank of Baroda'
+  };
+  return banks[bankCode] || bankCode.toUpperCase();
+}
+
+async function processCardPayment(cardDetails, amount) {
+  if (!cardDetails || !cardDetails.number || !cardDetails.cvv) {
+    return { success: false, error: 'Invalid card details' };
+  }
+  
+  await sleep(1500);
+  
+  const success = Math.random() < 0.9;
+  
+  if (success) {
+    return {
+      success: true,
+      cardType: detectCardType(cardDetails.number),
+      last4: cardDetails.number.slice(-4)
+    };
+  } else {
+    return { success: false, error: 'Card declined - Insufficient funds' };
+  }
+}
+
+async function processUPIPayment(upiId, amount) {
+  if (!upiId || !upiId.includes('@')) {
+    return { success: false, error: 'Invalid UPI ID' };
+  }
+  
+  await sleep(2000);
+  
+  const success = Math.random() < 0.95;
+  
+  if (success) {
+    return {
+      success: true,
+      maskedUpiId: maskUPIId(upiId)
+    };
+  } else {
+    return { success: false, error: 'UPI transaction failed' };
+  }
+}
+
+async function processWalletPayment(walletType, amount) {
+  if (!walletType) {
+    return { success: false, error: 'Invalid wallet type' };
+  }
+  
+  // Simulate processing delay
+  await sleep(1000);
+  
+  // 95% success rate simulation
+  const success = Math.random() < 0.95;
+  
+  if (success) {
+    return {
+      success: true,
+      wallet: walletType
+    };
+  } else {
+    return { success: false, error: 'Wallet payment failed - Insufficient balance' };
+  }
+}
+
+async function processNetBankingPayment(bankCode, amount) {
+  if (!bankCode) {
+    return { success: false, error: 'Invalid bank code' };
+  }
+  
+  // Simulate processing delay
+  await sleep(2500);
+  
+  // 92% success rate simulation
+  const success = Math.random() < 0.92;
+  
+  if (success) {
+    return {
+      success: true,
+      bankName: getBankName(bankCode)
+    };
+  } else {
+    return { success: false, error: 'Net banking transaction failed' };
+  }
+}
+
 // Serve the main HTML file for root route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

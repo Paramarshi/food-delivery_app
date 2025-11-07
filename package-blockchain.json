@@ -1,0 +1,48 @@
+{
+  "name": "food-delivery-blockchain",
+  "version": "1.0.0",
+  "description": "Blockchain-powered supply chain for food delivery",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run blockchain/deploy.js --network hardhat",
+    "deploy:mumbai": "hardhat run blockchain/deploy.js --network mumbai",
+    "deploy:polygon": "hardhat run blockchain/deploy.js --network polygon",
+    "deploy:sepolia": "hardhat run blockchain/deploy.js --network sepolia",
+    "verify:mumbai": "hardhat verify --network mumbai",
+    "verify:polygon": "hardhat verify --network polygon",
+    "node": "hardhat node",
+    "clean": "hardhat clean"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.19.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.9",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.2",
+    "@nomicfoundation/hardhat-ethers": "^3.0.4",
+    "@nomicfoundation/hardhat-verify": "^1.1.1",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@typechain/hardhat": "^9.1.0",
+    "@types/chai": "^4.3.9",
+    "@types/mocha": "^10.0.4",
+    "chai": "^4.3.10",
+    "hardhat-gas-reporter": "^1.0.9",
+    "solidity-coverage": "^0.8.5",
+    "typechain": "^8.3.2"
+  },
+  "keywords": [
+    "blockchain",
+    "supply-chain",
+    "food",
+    "traceability",
+    "ethereum",
+    "polygon"
+  ],
+  "author": "Food Delivery Team",
+  "license": "MIT"
+}

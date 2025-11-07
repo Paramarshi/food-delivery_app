@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Connection Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Ethers.js v6 - LOCAL FILE -->
+    <script src="./ethers.min.js"></script>
+    
+    <!-- Supply Chain Web3 Integration -->
+    <script src="./supplychain-web3.js?v=3"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-3xl font-bold mb-6 text-gray-800">🔗 Blockchain Connection Test</h1>
+            
+            <div id="status" class="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200">
+                <p class="text-blue-800">Checking dependencies...</p>
+            </div>
+
+            <div class="space-y-4">
+                <button 
+                    id="connectBtn" 
+                    onclick="testConnection()" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                    Connect Wallet & Initialize Blockchain
+                </button>
+
+                <button 
+                    onclick="testContractRead()" 
+                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                    Test Contract Read (Get Total Products)
+                </button>
+            </div>
+
+            <div id="logs" class="mt-6 p-4 bg-gray-900 text-green-400 rounded-lg font-mono text-sm h-96 overflow-auto">
+                <div>Console logs will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Capture console logs
+        const logsDiv = document.getElementById('logs');
+        const originalLog = console.log;
+        const originalError = console.error;
+
+        function addLog(message, type = 'log') {
+            const logEntry = document.createElement('div');
+            logEntry.className = type === 'error' ? 'text-red-400' : 'text-green-400';
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            addLog(args.join(' '), 'log');
+            originalLog.apply(console, args);
+        };
+
+        console.error = function(...args) {
+            addLog(args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+
+        // Check initial state
+        window.addEventListener('DOMContentLoaded', () => {
+            const statusDiv = document.getElementById('status');
+            let checks = [];
+
+            // Check Ethers.js
+            if (typeof ethers !== 'undefined') {
+                checks.push('✅ Ethers.js loaded');
+            } else {
+                checks.push('❌ Ethers.js NOT loaded');
+            }
+
+            // Check SupplyChainWeb3 class
+            if (typeof SupplyChainWeb3 !== 'undefined') {
+                checks.push('✅ SupplyChainWeb3 class available');
+            } else {
+                checks.push('❌ SupplyChainWeb3 class NOT available');
+            }
+
+            // Check MetaMask
+            if (typeof window.ethereum !== 'undefined') {
+                checks.push('✅ MetaMask detected');
+            } else {
+                checks.push('❌ MetaMask NOT detected');
+            }
+
+            // Check contract address
+            if (typeof CONTRACT_ADDRESS !== 'undefined') {
+                checks.push(`✅ Contract Address: ${CONTRACT_ADDRESS}`);
+            } else {
+                checks.push('❌ Contract Address NOT available');
+            }
+
+            statusDiv.innerHTML = checks.map(check => `<p class="${check.includes('❌') ? 'text-red-600' : 'text-green-600'}">${check}</p>`).join('');
+            
+            console.log('=== Initial Dependency Check ===');
+            checks.forEach(check => console.log(check));
+        });
+
+        // Test connection function
+        async function testConnection() {
+            const connectBtn = document.getElementById('connectBtn');
+            try {
+                connectBtn.disabled = true;
+                connectBtn.textContent = 'Connecting...';
+                
+                console.log('\n=== Testing Wallet Connection ===');
+                
+                // Check if class exists
+                if (typeof SupplyChainWeb3 === 'undefined') {
+                    throw new Error('SupplyChainWeb3 class not found!');
+                }
+
+                // Create instance
+                console.log('Creating SupplyChainWeb3 instance...');
+                const web3Instance = new SupplyChainWeb3();
+                
+                // Initialize
+                console.log('Calling init()...');
+                await web3Instance.init();
+                
+                // Store globally
+                window.testWeb3 = web3Instance;
+                
+                console.log('✅ SUCCESS! Blockchain initialized');
+                console.log('Account:', web3Instance.account);
+                console.log('Contract:', web3Instance.contract.target || web3Instance.contract.address);
+                
+                connectBtn.textContent = '✅ Connected!';
+                connectBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                connectBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                
+            } catch (error) {
+                console.error('❌ Connection failed:', error.message);
+                console.error('Full error:', error);
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Try Again';
+                connectBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+            }
+        }
+
+        // Test contract read
+        async function testContractRead() {
+            try {
+                console.log('\n=== Testing Contract Read ===');
+                
+                if (!window.testWeb3 || !window.testWeb3.contract) {
+                    throw new Error('Please connect wallet first!');
+                }
+
+                console.log('Calling getTotalProducts()...');
+                const total = await window.testWeb3.contract.getTotalProducts();
+                console.log('✅ Total products on blockchain:', total.toString());
+                
+                alert(`Total products: ${total.toString()}`);
+                
+            } catch (error) {
+                console.error('❌ Contract read failed:', error.message);
+                console.error('Full error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

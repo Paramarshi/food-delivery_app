@@ -5,7 +5,19 @@
   "main": "index.js",
   "scripts": {
     "start": "vercel dev",
-    "build": "echo 'No build step required for static site'"
+    "build": "echo 'No build step required for static site'",
+    "test": "npx hardhat test",
+    "test:system": "node scripts/test-system.js",
+    "test:product-code": "node utils/product-code-generator.js",
+    "test:qr-code": "node utils/qr-code-generator.js",
+    "register": "node scripts/register-product.js",
+    "bulk-register": "node scripts/bulk-register.js",
+    "generate-website-qr": "node scripts/generate-website-qr.js",
+    "verify-env": "node scripts/verify-env.js",
+    "check-balance": "npx hardhat run scripts/check-balance.js --network amoy",
+    "deploy:local": "npx hardhat run blockchain/deploy.js --network hardhat",
+    "deploy:amoy": "npx hardhat run blockchain/deploy.js --network amoy",
+    "deploy:polygon": "npx hardhat run blockchain/deploy.js --network polygon"
   },
   "dependencies": {
     "@clerk/clerk-js": "^5.99.0",
@@ -13,9 +25,14 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.18.2",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "qrcode": "^1.5.4",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "ethers": "^6.7.0",
+    "hardhat": "^2.19.0",
     "vercel": "latest"
   },
   "engines": {

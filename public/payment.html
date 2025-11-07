@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Food Delivery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in { animation: slideIn 0.5s ease-out; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        
+        .payment-method {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .payment-method:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .payment-method.active {
+            border: 2px solid #3b82f6;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        }
+        
+        .card-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .processing-animation {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+        }
+        .success-checkmark .check-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid #4ade80;
+        }
+        .success-checkmark .check-icon::before {
+            top: 3px;
+            left: -2px;
+            width: 30px;
+            transform-origin: 100% 50%;
+            border-radius: 100px 0 0 100px;
+        }
+        .success-checkmark .check-icon::after {
+            top: 0;
+            left: 30px;
+            width: 60px;
+            transform-origin: 0 50%;
+            border-radius: 0 100px 100px 0;
+            animation: rotate-circle 4.25s ease-in;
+        }
+        .success-checkmark .check-icon::before, .success-checkmark .check-icon::after {
+            content: '';
+            height: 100px;
+            position: absolute;
+            background: #fff;
+            transform: rotate(-45deg);
+        }
+        .success-checkmark .check-icon .icon-line {
+            height: 5px;
+            background-color: #4ade80;
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+        .success-checkmark .check-icon .icon-line.line-tip {
+            top: 46px;
+            left: 14px;
+            width: 25px;
+            transform: rotate(45deg);
+            animation: icon-line-tip 0.75s;
+        }
+        .success-checkmark .check-icon .icon-line.line-long {
+            top: 38px;
+            right: 8px;
+            width: 47px;
+            transform: rotate(-45deg);
+            animation: icon-line-long 0.75s;
+        }
+        
+        @keyframes icon-line-tip {
+            0% { width: 0; left: 1px; top: 19px; }
+            54% { width: 0; left: 1px; top: 19px; }
+            70% { width: 50px; left: -8px; top: 37px; }
+            84% { width: 17px; left: 21px; top: 48px; }
+            100% { width: 25px; left: 14px; top: 45px; }
+        }
+        @keyframes icon-line-long {
+            0% { width: 0; right: 46px; top: 54px; }
+            65% { width: 0; right: 46px; top: 54px; }
+            84% { width: 55px; right: 0px; top: 35px; }
+            100% { width: 47px; right: 8px; top: 38px; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-6 slide-in">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">💳 Secure Payment</h1>
+                    <p class="text-gray-600">Complete your order with our secure payment gateway</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500">Order ID</div>
+                    <div class="text-xl font-bold text-gray-800" id="orderId">#ORD-12345</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left: Payment Form -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Payment Methods -->
+                <div class="bg-white rounded-2xl shadow-xl p-6 fade-in">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Choose Payment Method</h2>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="payment-method active border-2 border-gray-200 rounded-xl p-4 text-center" 
+                             onclick="selectPaymentMethod('card')" id="method-card">
+                            <i class="ph-credit-card text-4xl text-blue-600 mb-2"></i>
+                            <div class="font-semibold text-sm">Card</div>
+                        </div>
+                        <div class="payment-method border-2 border-gray-200 rounded-xl p-4 text-center" 
+                             onclick="selectPaymentMethod('upi')" id="method-upi">
+                            <i class="ph-qr-code text-4xl text-purple-600 mb-2"></i>
+                            <div class="font-semibold text-sm">UPI</div>
+                        </div>
+                        <div class="payment-method border-2 border-gray-200 rounded-xl p-4 text-center" 
+                             onclick="selectPaymentMethod('wallet')" id="method-wallet">
+                            <i class="ph-wallet text-4xl text-green-600 mb-2"></i>
+                            <div class="font-semibold text-sm">Wallet</div>
+                        </div>
+                        <div class="payment-method border-2 border-gray-200 rounded-xl p-4 text-center" 
+                             onclick="selectPaymentMethod('netbanking')" id="method-netbanking">
+                            <i class="ph-bank text-4xl text-orange-600 mb-2"></i>
+                            <div class="font-semibold text-sm">Net Banking</div>
+                        </div>
+                    </div>
+
+                    <!-- Card Payment Form -->
+                    <div id="card-form" class="payment-form">
+                        <h3 class="font-bold text-gray-700 mb-4">Enter Card Details</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+                                <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19"
+                                       oninput="formatCardNumber(this)"
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
+                                <input type="text" id="cardName" placeholder="JOHN DOE"
+                                       oninput="this.value = this.value.toUpperCase()"
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                                    <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5"
+                                           oninput="formatExpiry(this)"
+                                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">CVV</label>
+                                    <input type="password" id="cardCVV" placeholder="123" maxlength="3"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition">
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                                <i class="ph-lock text-blue-600"></i>
+                                <span>Your payment information is encrypted and secure</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UPI Payment Form -->
+                    <div id="upi-form" class="payment-form hidden">
+                        <h3 class="font-bold text-gray-700 mb-4">Pay with UPI</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Enter UPI ID</label>
+                                <input type="text" id="upiId" placeholder="yourname@upi"
+                                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition">
+                            </div>
+
+                            <div class="text-center py-6">
+                                <div class="inline-block bg-white p-6 rounded-2xl shadow-lg">
+                                    <div class="text-gray-600 mb-4">Or scan QR code</div>
+                                    <div class="w-48 h-48 mx-auto bg-gray-100 rounded-lg flex items-center justify-center">
+                                        <i class="ph-qr-code text-8xl text-gray-400"></i>
+                                    </div>
+                                    <div class="mt-4 text-sm text-gray-500">Scan with any UPI app</div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-4 gap-3">
+                                <button class="border-2 border-gray-200 rounded-lg p-3 hover:border-purple-500 transition">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-paytm-logo-icon-download-in-svg-png-gif-file-formats--payment-brand-bank-pack-logos-icons-226448.png?f=webp&w=256" alt="Paytm" class="w-full h-8 object-contain">
+                                </button>
+                                <button class="border-2 border-gray-200 rounded-lg p-3 hover:border-purple-500 transition">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-google-pay-logo-icon-download-in-svg-png-gif-file-formats--gpay-payment-logos-icons-1730345.png?f=webp&w=256" alt="Google Pay" class="w-full h-8 object-contain">
+                                </button>
+                                <button class="border-2 border-gray-200 rounded-lg p-3 hover:border-purple-500 transition">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-phonepe-logo-icon-download-in-svg-png-gif-file-formats--brand-payment-pack-logos-icons-2645426.png?f=webp&w=256" alt="PhonePe" class="w-full h-8 object-contain">
+                                </button>
+                                <button class="border-2 border-gray-200 rounded-lg p-3 hover:border-purple-500 transition">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-bhim-logo-icon-download-in-svg-png-gif-file-formats--upi-payment-social-media-vol-2-pack-logos-icons-3029947.png?f=webp&w=256" alt="BHIM" class="w-full h-8 object-contain">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wallet Payment Form -->
+                    <div id="wallet-form" class="payment-form hidden">
+                        <h3 class="font-bold text-gray-700 mb-4">Select Wallet</h3>
+                        
+                        <div class="space-y-3">
+                            <label class="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-paytm-logo-icon-download-in-svg-png-gif-file-formats--payment-brand-bank-pack-logos-icons-226448.png?f=webp&w=256" alt="Paytm" class="w-10 h-10 object-contain">
+                                    <div>
+                                        <div class="font-semibold">Paytm</div>
+                                        <div class="text-sm text-gray-500">Balance: ₹2,500</div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="wallet" value="paytm" class="w-5 h-5">
+                            </label>
+
+                            <label class="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-phonepe-logo-icon-download-in-svg-png-gif-file-formats--brand-payment-pack-logos-icons-2645426.png?f=webp&w=256" alt="PhonePe" class="w-10 h-10 object-contain">
+                                    <div>
+                                        <div class="font-semibold">PhonePe Wallet</div>
+                                        <div class="text-sm text-gray-500">Balance: ₹1,800</div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="wallet" value="phonepe" class="w-5 h-5">
+                            </label>
+
+                            <label class="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-amazon-pay-logo-icon-download-in-svg-png-gif-file-formats--payment-brand-shopping-vol-4-pack-logos-icons-2945049.png?f=webp&w=256" alt="Amazon Pay" class="w-10 h-10 object-contain">
+                                    <div>
+                                        <div class="font-semibold">Amazon Pay</div>
+                                        <div class="text-sm text-gray-500">Balance: ₹3,200</div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="wallet" value="amazonpay" class="w-5 h-5">
+                            </label>
+
+                            <label class="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-mobikwik-logo-icon-download-in-svg-png-gif-file-formats--payment-wallet-brand-logos-icons-1730337.png?f=webp&w=256" alt="Mobikwik" class="w-10 h-10 object-contain">
+                                    <div>
+                                        <div class="font-semibold">Mobikwik</div>
+                                        <div class="text-sm text-gray-500">Balance: ₹950</div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="wallet" value="mobikwik" class="w-5 h-5">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Net Banking Form -->
+                    <div id="netbanking-form" class="payment-form hidden">
+                        <h3 class="font-bold text-gray-700 mb-4">Select Your Bank</h3>
+                        
+                        <div class="mb-4">
+                            <input type="text" id="bankSearch" placeholder="Search your bank..."
+                                   oninput="filterBanks(this.value)"
+                                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition">
+                        </div>
+
+                        <div id="bankList" class="space-y-2 max-h-96 overflow-y-auto">
+                            <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-orange-500 transition bank-item">
+                                <div class="flex items-center gap-3">
+                                    <i class="ph-bank text-2xl text-orange-600"></i>
+                                    <span class="font-medium">State Bank of India</span>
+                                </div>
+                                <input type="radio" name="bank" value="sbi" class="w-5 h-5">
+                            </label>
+
+                            <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-orange-500 transition bank-item">
+                                <div class="flex items-center gap-3">
+                                    <i class="ph-bank text-2xl text-orange-600"></i>
+                                    <span class="font-medium">HDFC Bank</span>
+                                </div>
+                                <input type="radio" name="bank" value="hdfc" class="w-5 h-5">
+                            </label>
+
+                            <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-orange-500 transition bank-item">
+                                <div class="flex items-center gap-3">
+                                    <i class="ph-bank text-2xl text-orange-600"></i>
+                                    <span class="font-medium">ICICI Bank</span>
+                                </div>
+                                <input type="radio" name="bank" value="icici" class="w-5 h-5">
+                            </label>
+
+                            <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-orange-500 transition bank-item">
+                                <div class="flex items-center gap-3">
+                                    <i class="ph-bank text-2xl text-orange-600"></i>
+                                    <span class="font-medium">Axis Bank</span>
+                                </div>
+                                <input type="radio" name="bank" value="axis" class="w-5 h-5">
+                            </label>
+
+                            <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-orange-500 transition bank-item">
+                                <div class="flex items-center gap-3">
+                                    <i class="ph-bank text-2xl text-orange-600"></i>
+                                    <span class="font-medium">Kotak Mahindra Bank</span>
+                                </div>
+                                <input type="radio" name="bank" value="kotak" class="w-5 h-5">
+                            </label>
+
+                            <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-orange-500 transition bank-item">
+                                <div class="flex items-center gap-3">
+                                    <i class="ph-bank text-2xl text-orange-600"></i>
+                                    <span class="font-medium">Punjab National Bank</span>
+                                </div>
+                                <input type="radio" name="bank" value="pnb" class="w-5 h-5">
+                            </label>
+
+                            <label class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-orange-500 transition bank-item">
+                                <div class="flex items-center gap-3">
+                                    <i class="ph-bank text-2xl text-orange-600"></i>
+                                    <span class="font-medium">Bank of Baroda</span>
+                                </div>
+                                <input type="radio" name="bank" value="bob" class="w-5 h-5">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Card Option -->
+                <div class="bg-white rounded-2xl shadow-xl p-6 fade-in">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="saveCard" class="w-5 h-5 text-blue-600 rounded">
+                        <div>
+                            <div class="font-semibold text-gray-800">Save payment information</div>
+                            <div class="text-sm text-gray-500">Securely save for faster checkout next time</div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Terms and Conditions -->
+                <div class="bg-white rounded-2xl shadow-xl p-6 fade-in">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="terms" class="w-5 h-5 text-blue-600 rounded mt-1">
+                        <div class="text-sm text-gray-600">
+                            I agree to the <a href="#" class="text-blue-600 hover:underline">Terms and Conditions</a> and 
+                            <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a>. 
+                            I authorize the payment and understand that this transaction is non-refundable except as per the 
+                            <a href="#" class="text-blue-600 hover:underline">Refund Policy</a>.
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Right: Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="sticky top-8 space-y-6">
+                    <!-- Card Preview (for card payments) -->
+                    <div id="cardPreview" class="card-preview fade-in">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="text-xl font-bold">VISA</div>
+                            <i class="ph-cpu text-3xl"></i>
+                        </div>
+                        <div class="font-mono text-xl mb-6 tracking-wider" id="previewCardNumber">
+                            •••• •••• •••• ••••
+                        </div>
+                        <div class="flex justify-between">
+                            <div>
+                                <div class="text-xs opacity-70 mb-1">Card Holder</div>
+                                <div class="font-semibold" id="previewCardName">YOUR NAME</div>
+                            </div>
+                            <div>
+                                <div class="text-xs opacity-70 mb-1">Expires</div>
+                                <div class="font-semibold" id="previewExpiry">MM/YY</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="bg-white rounded-2xl shadow-xl p-6 fade-in">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Order Summary</h2>
+                        
+                        <div class="space-y-3 mb-4">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Subtotal</span>
+                                <span class="font-semibold">₹<span id="subtotal">450</span></span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Delivery Fee</span>
+                                <span class="font-semibold">₹<span id="deliveryFee">40</span></span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">GST (5%)</span>
+                                <span class="font-semibold">₹<span id="gst">22.50</span></span>
+                            </div>
+                            <div class="flex justify-between text-sm text-green-600">
+                                <span>Discount</span>
+                                <span class="font-semibold">-₹<span id="discount">50</span></span>
+                            </div>
+                        </div>
+
+                        <div class="border-t pt-4 mb-6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-bold text-gray-800">Total Amount</span>
+                                <span class="text-2xl font-bold text-blue-600">₹<span id="totalAmount">462.50</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Payment Button -->
+                        <button onclick="processPayment()" 
+                                class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 rounded-xl hover:shadow-xl transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                            <i class="ph-lock text-xl"></i>
+                            <span>Pay ₹<span id="payAmount">462.50</span></span>
+                        </button>
+
+                        <div class="mt-4 text-center text-xs text-gray-500">
+                            <i class="ph-shield-check text-green-600"></i>
+                            100% Secure Payment
+                        </div>
+                    </div>
+
+                    <!-- Security Badges -->
+                    <div class="bg-white rounded-2xl shadow-xl p-6 fade-in">
+                        <div class="grid grid-cols-3 gap-3 text-center">
+                            <div>
+                                <i class="ph-shield-checkered text-3xl text-green-600 mb-2"></i>
+                                <div class="text-xs text-gray-600">SSL Secured</div>
+                            </div>
+                            <div>
+                                <i class="ph-lock-key text-3xl text-blue-600 mb-2"></i>
+                                <div class="text-xs text-gray-600">PCI Compliant</div>
+                            </div>
+                            <div>
+                                <i class="ph-fingerprint text-3xl text-purple-600 mb-2"></i>
+                                <div class="text-xs text-gray-600">Verified</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Modal -->
+    <div id="processingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="processing-animation w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto mb-4"></div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Processing Payment...</h3>
+            <p class="text-gray-600">Please don't close this window</p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="success-checkmark mb-6">
+                <div class="check-icon">
+                    <span class="icon-line line-tip"></span>
+                    <span class="icon-line line-long"></span>
+                    <div class="icon-circle"></div>
+                    <div class="icon-fix"></div>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h3>
+            <p class="text-gray-600 mb-4">Your order has been placed successfully</p>
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="text-sm text-gray-600 mb-1">Transaction ID</div>
+                <div class="font-mono font-bold text-gray-800" id="transactionId">TXN-123456789</div>
+            </div>
+            <div class="space-y-3">
+                <button onclick="downloadReceipt()" 
+                        class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition">
+                    Download Receipt
+                </button>
+                <button onclick="window.location.href='prototype.html'" 
+                        class="w-full bg-gray-100 text-gray-800 font-semibold py-3 rounded-lg hover:bg-gray-200 transition">
+                    Back to Home
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPaymentMethod = 'card';
+
+        // Select Payment Method
+        function selectPaymentMethod(method) {
+            currentPaymentMethod = method;
+            
+            // Update UI
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(`method-${method}`).classList.add('active');
+
+            // Show/hide forms
+            document.querySelectorAll('.payment-form').forEach(form => {
+                form.classList.add('hidden');
+            });
+            document.getElementById(`${method}-form`).classList.remove('hidden');
+
+            // Show/hide card preview
+            const cardPreview = document.getElementById('cardPreview');
+            if (method === 'card') {
+                cardPreview.classList.remove('hidden');
+            } else {
+                cardPreview.classList.add('hidden');
+            }
+        }
+
+        // Format Card Number
+        function formatCardNumber(input) {
+            let value = input.value.replace(/\s/g, '');
+            value = value.replace(/\D/g, '');
+            value = value.replace(/(.{4})/g, '$1 ').trim();
+            input.value = value;
+            
+            // Update preview
+            const preview = document.getElementById('previewCardNumber');
+            if (value) {
+                preview.textContent = value.padEnd(19, '•');
+            } else {
+                preview.textContent = '•••• •••• •••• ••••';
+            }
+
+            // Detect card type
+            if (value.startsWith('4')) {
+                // Visa
+            } else if (value.startsWith('5')) {
+                // Mastercard
+            }
+        }
+
+        // Format Expiry
+        function formatExpiry(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            input.value = value;
+            
+            // Update preview
+            document.getElementById('previewExpiry').textContent = value || 'MM/YY';
+        }
+
+        // Update Card Name Preview
+        document.getElementById('cardName')?.addEventListener('input', (e) => {
+            const name = e.target.value || 'YOUR NAME';
+            document.getElementById('previewCardName').textContent = name;
+        });
+
+        // Filter Banks
+        function filterBanks(searchTerm) {
+            const bankItems = document.querySelectorAll('.bank-item');
+            const search = searchTerm.toLowerCase();
+            
+            bankItems.forEach(item => {
+                const bankName = item.querySelector('span').textContent.toLowerCase();
+                if (bankName.includes(search)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        // Process Payment
+        async function processPayment() {
+            // Validate terms
+            if (!document.getElementById('terms').checked) {
+                alert('Please accept the terms and conditions');
+                return;
+            }
+
+            // Validate payment details based on method
+            if (currentPaymentMethod === 'card') {
+                const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                const cardName = document.getElementById('cardName').value;
+                const cardExpiry = document.getElementById('cardExpiry').value;
+                const cardCVV = document.getElementById('cardCVV').value;
+
+                if (!cardNumber || cardNumber.length < 16) {
+                    alert('Please enter a valid card number');
+                    return;
+                }
+                if (!cardName) {
+                    alert('Please enter cardholder name');
+                    return;
+                }
+                if (!cardExpiry || cardExpiry.length < 5) {
+                    alert('Please enter valid expiry date');
+                    return;
+                }
+                if (!cardCVV || cardCVV.length < 3) {
+                    alert('Please enter valid CVV');
+                    return;
+                }
+            } else if (currentPaymentMethod === 'upi') {
+                const upiId = document.getElementById('upiId').value;
+                if (!upiId || !upiId.includes('@')) {
+                    alert('Please enter a valid UPI ID');
+                    return;
+                }
+            } else if (currentPaymentMethod === 'wallet') {
+                const selectedWallet = document.querySelector('input[name="wallet"]:checked');
+                if (!selectedWallet) {
+                    alert('Please select a wallet');
+                    return;
+                }
+            } else if (currentPaymentMethod === 'netbanking') {
+                const selectedBank = document.querySelector('input[name="bank"]:checked');
+                if (!selectedBank) {
+                    alert('Please select a bank');
+                    return;
+                }
+            }
+
+            // Show processing modal
+            document.getElementById('processingModal').classList.remove('hidden');
+            document.getElementById('processingModal').classList.add('flex');
+
+            // Call payment API
+            try {
+                // Prepare payment data
+                const paymentData = {
+                    orderId: document.getElementById('orderId').textContent,
+                    amount: parseFloat(document.getElementById('totalAmount').textContent),
+                    paymentMethod: currentPaymentMethod,
+                    customerEmail: 'customer@example.com', // Get from user session
+                    customerPhone: '+91 9876543210' // Get from user session
+                };
+
+                // Add method-specific data
+                if (currentPaymentMethod === 'card') {
+                    paymentData.cardDetails = {
+                        number: cardNumber.replace(/\s/g, ''),
+                        name: cardName,
+                        expiry: cardExpiry,
+                        cvv: cardCVV
+                    };
+                } else if (currentPaymentMethod === 'upi') {
+                    paymentData.upiId = document.getElementById('upiId').value;
+                } else if (currentPaymentMethod === 'wallet') {
+                    paymentData.walletType = document.querySelector('input[name="wallet"]:checked').value;
+                } else if (currentPaymentMethod === 'netbanking') {
+                    paymentData.bankCode = document.querySelector('input[name="bank"]:checked').value;
+                }
+
+                // Call payment API
+                const response = await fetch('/api/payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                const result = await response.json();
+
+                // Hide processing modal
+                document.getElementById('processingModal').classList.add('hidden');
+                document.getElementById('processingModal').classList.remove('flex');
+
+                if (result.success) {
+                    // Show success with transaction ID
+                    document.getElementById('transactionId').textContent = result.transactionId;
+                    
+                    // Save order to backend with payment info
+                    try {
+                        const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder') || '{}');
+                        const orderResponse = await fetch('/api/orders', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                userId: 'guest-user', // Replace with actual user ID from session
+                                items: pendingOrder.items || [],
+                                totalAmount: pendingOrder.totalAmount || paymentData.amount,
+                                paymentMethod: currentPaymentMethod,
+                                paymentId: result.transactionId,
+                                status: 'confirmed'
+                            })
+                        });
+                        
+                        if (orderResponse.ok) {
+                            const orderResult = await orderResponse.json();
+                            console.log('Order saved:', orderResult);
+                            localStorage.removeItem('pendingOrder');
+                        }
+                    } catch (orderError) {
+                        console.error('Error saving order:', orderError);
+                        // Continue anyway - payment was successful
+                    }
+                    
+                    // Show success modal
+                    document.getElementById('successModal').classList.remove('hidden');
+                    document.getElementById('successModal').classList.add('flex');
+
+                    // Store payment info
+                    const paymentInfo = {
+                        orderId: paymentData.orderId,
+                        amount: paymentData.amount,
+                        method: currentPaymentMethod,
+                        transactionId: result.transactionId,
+                        timestamp: result.timestamp
+                    };
+                    console.log('Payment successful:', paymentInfo);
+                    localStorage.setItem('lastPayment', JSON.stringify(paymentInfo));
+                } else {
+                    // Payment failed
+                    alert(`Payment failed: ${result.error}`);
+                }
+            } catch (error) {
+                // Hide processing modal
+                document.getElementById('processingModal').classList.add('hidden');
+                document.getElementById('processingModal').classList.remove('flex');
+                
+                console.error('Payment error:', error);
+                alert('Payment processing failed. Please try again.');
+            }
+        }
+
+        // Download Receipt
+        function downloadReceipt() {
+            const receipt = {
+                orderId: document.getElementById('orderId').textContent,
+                transactionId: document.getElementById('transactionId').textContent,
+                amount: document.getElementById('totalAmount').textContent,
+                date: new Date().toLocaleString(),
+                paymentMethod: currentPaymentMethod
+            };
+
+            // Create receipt text
+            const receiptText = `
+PAYMENT RECEIPT
+=====================================
+Order ID: ${receipt.orderId}
+Transaction ID: ${receipt.transactionId}
+Date: ${receipt.date}
+Payment Method: ${receipt.paymentMethod.toUpperCase()}
+Amount Paid: ₹${receipt.amount}
+=====================================
+Thank you for your order!
+            `;
+
+            // Download as text file
+            const blob = new Blob([receiptText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `receipt-${receipt.transactionId}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            // Get order data from URL parameters or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('orderId') || localStorage.getItem('currentOrderId') || '#ORD-' + Date.now().toString().slice(-8);
+            const amount = urlParams.get('amount') || localStorage.getItem('currentOrderAmount');
+            
+            document.getElementById('orderId').textContent = orderId;
+            
+            // If amount is provided in URL, update the display
+            if (amount) {
+                const amountFloat = parseFloat(amount);
+                document.getElementById('subtotal').textContent = amountFloat.toFixed(2);
+                calculateTotals();
+            } else {
+                calculateTotals();
+            }
+        });
+
+        function calculateTotals() {
+            const subtotal = parseFloat(document.getElementById('subtotal').textContent);
+            const deliveryFee = parseFloat(document.getElementById('deliveryFee').textContent);
+            const discount = parseFloat(document.getElementById('discount').textContent);
+            const gst = parseFloat(document.getElementById('gst').textContent);
+            
+            const total = (subtotal + deliveryFee + gst - discount).toFixed(2);
+            document.getElementById('totalAmount').textContent = total;
+            document.getElementById('payAmount').textContent = total;
+        }
+    </script>
+</body>
+</html>
