@@ -4,14 +4,12 @@ const path = require('path');
 const { Pool } = require('pg');
 require('dotenv').config({ path: '.env.local' });
 
-// Debug: Check if environment variables are loaded
 console.log('🔍 Environment check:');
 console.log('- DATABASE_URL exists:', !!process.env.DATABASE_URL);
 console.log('- POSTGRES_URL exists:', !!process.env.POSTGRES_URL);
 console.log('- CLERK_PUBLISHABLE_KEY exists:', !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 console.log('- CLERK_PUBLISHABLE_KEY value:', process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? `${process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.substring(0, 20)}...` : 'Not found');
 
-// Database connection
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
     ssl: {
@@ -19,7 +17,6 @@ const pool = new Pool({
     }
 });
 
-// Test database connection on startup
 pool.connect((err, client, release) => {
     if (err) {
         console.error('❌ Database connection failed:', err.message);
@@ -32,14 +29,11 @@ pool.connect((err, client, release) => {
 const app = express();
 const PORT = 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Simple mock API endpoints
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -280,6 +274,7 @@ app.post('/api/users', (req, res) => {
   res.json(user);
 });
 
+// Payment API endpoint
 const paymentStorage = new Map();
 
 app.get('/api/payment', (req, res) => {
@@ -311,6 +306,7 @@ app.post('/api/payment', async (req, res) => {
     customerPhone 
   } = req.body;
   
+  // Validation
   if (!orderId || !amount || !paymentMethod) {
     return res.status(400).json({ 
       success: false, 
@@ -328,6 +324,7 @@ app.post('/api/payment', async (req, res) => {
   try {
     let paymentResult;
     
+    // Process based on payment method
     switch (paymentMethod) {
       case 'card':
         paymentResult = await processCardPayment(cardDetails, amount);
@@ -388,6 +385,7 @@ app.post('/api/payment', async (req, res) => {
   }
 });
 
+// Payment processing functions (simulated)
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 function generateTransactionId() {
@@ -427,8 +425,10 @@ async function processCardPayment(cardDetails, amount) {
     return { success: false, error: 'Invalid card details' };
   }
   
+  // Simulate processing delay
   await sleep(1500);
   
+  // 90% success rate simulation
   const success = Math.random() < 0.9;
   
   if (success) {
@@ -447,8 +447,10 @@ async function processUPIPayment(upiId, amount) {
     return { success: false, error: 'Invalid UPI ID' };
   }
   
+  // Simulate processing delay
   await sleep(2000);
   
+  // 95% success rate simulation
   const success = Math.random() < 0.95;
   
   if (success) {
