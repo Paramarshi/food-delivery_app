@@ -73,15 +73,6 @@ async function bulkRegister(productInfo, quantity) {
     fs.writeFileSync(batchPath, JSON.stringify(batchMetadata, null, 2));
     console.log('✅ Batch metadata saved\n');
 
-    // Generate CSV for bulk blockchain registration
-    const csvPath = path.join(outputDir, 'blockchain_registration.csv');
-    const csvHeaders = 'Product ID,Name,Origin,Category,Weight,Unit,Tracking URL\n';
-    const csvRows = allProducts.map(p => 
-        `${p.productId},${p.name},${p.origin},${p.category},${p.weight},${p.unit},${p.trackingUrl}`
-    ).join('\n');
-    fs.writeFileSync(csvPath, csvHeaders + csvRows);
-    console.log('✅ CSV file created for blockchain registration\n');
-
     // Summary
     console.log('╔════════════════════════════════════════════════════════╗');
     console.log('║   Summary                                              ║');
@@ -93,15 +84,13 @@ async function bulkRegister(productInfo, quantity) {
     console.log(`   - ${quantity} QR code images (.png)`);
     console.log(`   - ${quantity} Printable labels (.html)`);
     console.log(`   - 1 Batch metadata file (JSON)`);
-    console.log(`   - 1 Blockchain registration file (CSV)`);
 
     console.log('\n╔════════════════════════════════════════════════════════╗');
     console.log('║   Next Steps                                           ║');
     console.log('╚════════════════════════════════════════════════════════╝\n');
     console.log('1. Review batch metadata in:', batchPath);
     console.log('2. Print labels from the _label.html files');
-    console.log('3. Register products on blockchain using the CSV file');
-    console.log('4. Attach QR codes to product packaging\n');
+    console.log('3. Attach QR codes to product packaging\n');
 
     console.log('🎉 Bulk registration completed successfully!\n');
 

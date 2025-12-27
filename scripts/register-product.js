@@ -25,7 +25,7 @@ function question(prompt) {
 
 async function main() {
     console.log('\n╔════════════════════════════════════════════════════════╗');
-    console.log('║   Blockchain Product Registration & QR Generator      ║');
+    console.log('║       Product Registration & QR Generator             ║');
     console.log('╚════════════════════════════════════════════════════════╝\n');
 
     try {
@@ -78,15 +78,15 @@ async function main() {
         fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
         console.log('✅ Metadata saved to:', metadataPath);
 
-        // Generate blockchain registration command
         console.log('\n╔════════════════════════════════════════════════════════╗');
-        console.log('║   Next Steps: Register on Blockchain                  ║');
+        console.log('║   Registration Complete                               ║');
         console.log('╚════════════════════════════════════════════════════════╝\n');
         
-        console.log('1. Open your browser and navigate to:');
-        console.log('   http://localhost:3000/public/profile.html\n');
-        
-        console.log('2. Click "Supply Chain" section and "Connect Wallet"\n');
+        console.log('✅ Product successfully registered!\n');
+        console.log('📦 Files generated:');
+        console.log('   - QR Code image');
+        console.log('   - Printable label (HTML)');
+        console.log('   - Product metadata (JSON)\n');
         
         console.log('3. Use these details to register the product:');
         console.log(`   Product ID: ${productId}`);

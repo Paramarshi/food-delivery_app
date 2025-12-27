@@ -86,6 +86,66 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* Search icon animations */
+        @keyframes searchPulse {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.15);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes searchGlow {
+            0%, 100% { 
+                filter: drop-shadow(0 0 0px rgba(132, 204, 22, 0));
+            }
+            50% { 
+                filter: drop-shadow(0 0 8px rgba(132, 204, 22, 0.6));
+            }
+        }
+
+        @keyframes searchRotate {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-10deg) scale(1.1); }
+            50% { transform: rotate(0deg) scale(1); }
+            75% { transform: rotate(10deg) scale(1.1); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        /* Search icon styling */
+        .search-icon {
+            animation: searchPulse 3s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+
+        .search-icon:hover {
+            animation: searchRotate 0.6s ease-in-out;
+            color: var(--accent-color-1) !important;
+        }
+
+        html.dark .search-icon {
+            animation: searchPulse 3s ease-in-out infinite, searchGlow 3s ease-in-out infinite;
+        }
+
+        html.dark .search-icon:hover {
+            filter: drop-shadow(0 0 12px rgba(190, 242, 100, 0.8));
+        }
+
+        /* Search bar focus effect - make icon brighter when input is focused */
+        #search-bar:focus ~ .search-icon {
+            animation: searchRotate 0.6s ease-in-out;
+            transform: scale(1.2);
+            color: var(--accent-color-1) !important;
+            filter: drop-shadow(0 0 8px rgba(132, 204, 22, 0.6));
+        }
+
+        html.dark #search-bar:focus ~ .search-icon {
+            filter: drop-shadow(0 0 12px rgba(190, 242, 100, 0.9));
+        }
+
         /* Custom scrollbar for cart */
         .scrollable-cart {
             scrollbar-width: thin;
@@ -610,20 +670,21 @@
                     <span class="hidden sm:inline">Stores</span>
                 </button>
             </div>
-            <div class="relative">
-                <i class="ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-xl transition-colors duration-300 dark:text-gray-300"></i>
+            <div class="relative group">
                 <input 
                     type="text" 
                     id="search-bar" 
                     placeholder="Search for products..." 
-                    class="w-full pl-12 pr-4 py-3 rounded-lg border focus:ring-2 focus:outline-none transition-all
+                    class="w-full pl-14 pr-4 py-3.5 rounded-lg border-2 focus:ring-2 focus:outline-none transition-all
                            bg-white dark:bg-gray-700
                            text-gray-900 dark:text-gray-100
                            placeholder-gray-400 dark:placeholder-gray-400
                            border-gray-200 dark:border-gray-600
                            focus:border-[color:var(--accent-color-1)] 
                            focus:ring-[color:var(--accent-color-1)]
-                           dark:focus:ring-lime-400">
+                           dark:focus:ring-lime-400
+                           hover:border-lime-400 dark:hover:border-lime-500">
+                <i class="ph-magnifying-glass-bold search-icon absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-lime-600 dark:text-lime-400 pointer-events-none"></i>
             </div>
         </div>
 
@@ -1843,6 +1904,53 @@ document.addEventListener('DOMContentLoaded', async() => {
         themeToggleBtn.addEventListener('click', toggleTheme);
     }
     
+    // --- AUTO-SUGGESTION FOR SEARCH BAR ---
+    let suggestionIndex = 0;
+    let suggestionInterval;
+    
+    const startAutoSuggestion = () => {
+        // Get all product names
+        const productNames = products.map(p => p.name);
+        
+        // Function to update placeholder
+        const updatePlaceholder = () => {
+            if (searchBar.value === '') { // Only update if search is empty
+                searchBar.placeholder = `Search for ${productNames[suggestionIndex]}...`;
+                suggestionIndex = (suggestionIndex + 1) % productNames.length;
+            }
+        };
+        
+        // Initial update
+        updatePlaceholder();
+        
+        // Update every 2 seconds
+        suggestionInterval = setInterval(updatePlaceholder, 2000);
+    };
+    
+    // Stop auto-suggestion when user starts typing
+    searchBar.addEventListener('focus', () => {
+        clearInterval(suggestionInterval);
+        if (searchBar.value === '') {
+            searchBar.placeholder = 'Search for products...';
+        }
+    });
+    
+    // Resume auto-suggestion when user leaves empty search
+    searchBar.addEventListener('blur', () => {
+        if (searchBar.value === '') {
+            startAutoSuggestion();
+        }
+    });
+    
+    // Stop rotation when user types
+    searchBar.addEventListener('input', () => {
+        if (searchBar.value !== '') {
+            clearInterval(suggestionInterval);
+        } else {
+            startAutoSuggestion();
+        }
+    });
+    
     // --- INITIAL RENDER ---
     await fetchProducts();
     loadDataFromStorage();
@@ -1850,6 +1958,9 @@ document.addEventListener('DOMContentLoaded', async() => {
     renderProducts();
     updateCartView();
     renderProfile();
+    
+    // Start auto-suggestion after products are loaded
+    startAutoSuggestion();
 });
 
 // Location Functions

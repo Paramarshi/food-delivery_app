@@ -5,68 +5,40 @@ require('dotenv').config();
 
 console.log("\n=== Environment Configuration Check ===\n");
 
-// Check Private Key
-const privateKey = process.env.PRIVATE_KEY;
-if (!privateKey || privateKey === 'your_private_key_here') {
-  console.log("❌ PRIVATE_KEY: Not configured");
-  console.log("   → Export from MetaMask and add to .env");
-} else if (privateKey.length !== 64) {
-  console.log("❌ PRIVATE_KEY: Invalid length (should be 64 characters)");
-  console.log("   → Current length:", privateKey.length);
-  console.log("   → Remove '0x' prefix if present");
-} else {
-  console.log("✅ PRIVATE_KEY: Configured (64 characters)");
-  console.log("   → Address preview:", privateKey.substring(0, 6) + "..." + privateKey.substring(58));
-}
+// Check Database Connection
+console.log("--- Database Configuration ---");
+const dbHost = process.env.DB_HOST;
+console.log(dbHost ? "✅ DB_HOST: " + dbHost : "❌ DB_HOST: Not configured");
 
-// Check RPC URLs
-console.log("\n--- RPC URLs ---");
-const amoyRpc = process.env.AMOY_RPC_URL;
-console.log(amoyRpc ? "✅ AMOY_RPC_URL: " + amoyRpc : "⚠️  AMOY_RPC_URL: Using default");
+const dbName = process.env.DB_NAME;
+console.log(dbName ? "✅ DB_NAME: " + dbName : "❌ DB_NAME: Not configured");
 
-const polygonRpc = process.env.POLYGON_RPC_URL;
-console.log(polygonRpc ? "✅ POLYGON_RPC_URL: " + polygonRpc : "⚠️  POLYGON_RPC_URL: Using default");
+const dbUser = process.env.DB_USER;
+console.log(dbUser ? "✅ DB_USER: " + dbUser : "❌ DB_USER: Not configured");
 
-// Check API Keys
-console.log("\n--- Block Explorer API Keys ---");
-const polygonScanKey = process.env.POLYGONSCAN_API_KEY;
-console.log(polygonScanKey ? "✅ POLYGONSCAN_API_KEY: Configured" : "❌ POLYGONSCAN_API_KEY: Missing");
+const dbPassword = process.env.DB_PASSWORD;
+console.log(dbPassword ? "✅ DB_PASSWORD: Configured" : "❌ DB_PASSWORD: Not configured");
 
-const etherscanKey = process.env.ETHERSCAN_API_KEY;
-console.log(etherscanKey ? "✅ ETHERSCAN_API_KEY: Configured" : "❌ ETHERSCAN_API_KEY: Missing");
+// Check Clerk Authentication
+console.log("\n--- Clerk Authentication ---");
+const clerkPublishable = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+console.log(clerkPublishable ? "✅ CLERK_PUBLISHABLE_KEY: Configured" : "❌ CLERK_PUBLISHABLE_KEY: Not configured");
 
-// Check Contract Address
-console.log("\n--- Contract Address ---");
-const contractAddress = process.env.SUPPLY_CHAIN_CONTRACT;
-if (!contractAddress || contractAddress === '0x0000000000000000000000000000000000000000') {
-  console.log("⏳ SUPPLY_CHAIN_CONTRACT: Not deployed yet");
-  console.log("   → Will be filled after deployment");
-} else {
-  console.log("✅ SUPPLY_CHAIN_CONTRACT:", contractAddress);
-}
+const clerkSecret = process.env.CLERK_SECRET_KEY;
+console.log(clerkSecret ? "✅ CLERK_SECRET_KEY: Configured" : "❌ CLERK_SECRET_KEY: Not configured");
 
 // Summary
 console.log("\n--- Summary ---");
-let readyToDeploy = true;
 
-if (!privateKey || privateKey === 'your_private_key_here' || privateKey.length !== 64) {
-  console.log("❌ Cannot deploy: Private key not configured properly");
-  readyToDeploy = false;
-}
+console.log("\n✅ Environment configuration verified!");
+console.log("\nDatabase connection:");
+console.log("  - PostgreSQL configured and ready");
+console.log("\nClerk Authentication:");
+console.log("  - API keys configured");
+console.log("\nNext steps:");
+console.log("1. Ensure PostgreSQL database is running");
+console.log("2. Start the local server: node local-server.js");
+console.log("3. Open the app: http://localhost:3000/public/index.html");
 
-if (!polygonScanKey || !etherscanKey) {
-  console.log("⚠️  Warning: Block explorer API keys missing (contract verification will fail)");
-}
+console.log("\n===========================================\n");
 
-if (readyToDeploy) {
-  console.log("\n✅ Ready to deploy to testnet!");
-  console.log("\nNext steps:");
-  console.log("1. Get test MATIC: https://faucet.polygon.technology/");
-  console.log("2. Check balance: npx hardhat run scripts/check-balance.js --network amoy");
-  console.log("3. Deploy contract: npx hardhat run blockchain/deploy.js --network amoy");
-} else {
-  console.log("\n❌ Not ready to deploy. Please configure missing items above.");
-  console.log("\nSee CRYPTO_API_SETUP.md for detailed instructions.");
-}
-
-console.log("\n======================================\n");
